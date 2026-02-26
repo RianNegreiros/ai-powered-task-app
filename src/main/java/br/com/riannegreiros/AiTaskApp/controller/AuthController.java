@@ -15,23 +15,23 @@ import br.com.riannegreiros.AiTaskApp.service.UserService;
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
-  public UserService userService;
+    private UserService userService;
 
-  public AuthController(UserService userService) {
-    this.userService = userService;
-}
+    public AuthController(UserService userService) {
+        this.userService = userService;
+    }
 
-  @PostMapping("/register")
-  public ResponseEntity<RegisterResponse> registration(@RequestBody RegisterRequest request) {
-    RegisterResponse newUser = userService.saveUser(request);
+    @PostMapping("/register")
+    public ResponseEntity<RegisterResponse> registration(@RequestBody RegisterRequest request) {
+        RegisterResponse newUser = userService.saveUser(request);
 
-    return ResponseEntity.ok(newUser);
-  }
+        return ResponseEntity.ok(newUser);
+    }
 
-@PostMapping("/login")
-  public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
-    LoginResponse loginResponse = userService.authenticateUser(request);
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
+        LoginResponse loginResponse = userService.authenticateUser(request);
 
-    return ResponseEntity.ok(loginResponse);
-  }
+        return ResponseEntity.ok(loginResponse);
+    }
 }
