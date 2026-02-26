@@ -1,10 +1,13 @@
 package br.com.riannegreiros.AiTaskApp.controller;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import br.com.riannegreiros.AiTaskApp.dto.LoginRequest;
+import br.com.riannegreiros.AiTaskApp.dto.LoginResponse;
 import br.com.riannegreiros.AiTaskApp.dto.RegisterRequest;
 import br.com.riannegreiros.AiTaskApp.dto.RegisterResponse;
 import br.com.riannegreiros.AiTaskApp.service.UserService;
@@ -16,12 +19,19 @@ public class AuthController {
 
   public AuthController(UserService userService) {
     this.userService = userService;
-  }
+}
 
-  @PostMapping
-  public RegisterResponse userRegistration(@RequestBody RegisterRequest request) {
+  @PostMapping("/register")
+  public ResponseEntity<RegisterResponse> registration(@RequestBody RegisterRequest request) {
     RegisterResponse newUser = userService.saveUser(request);
 
-    return newUser;
+    return ResponseEntity.ok(newUser);
+  }
+
+@PostMapping("/login")
+  public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
+    LoginResponse loginResponse = userService.authenticateUser(request);
+
+    return ResponseEntity.ok(loginResponse);
   }
 }

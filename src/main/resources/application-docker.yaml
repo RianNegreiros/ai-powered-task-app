@@ -17,6 +17,12 @@ spring:
     validate-on-migrate: true
     table: flyway_schema_history
 
+jwt:
+  public:
+    key: classpath:/app.pub
+  private:
+    key: classpath:/app.key
+
 logging:
   level:
     "[org.springframework.security]": DEBUG
