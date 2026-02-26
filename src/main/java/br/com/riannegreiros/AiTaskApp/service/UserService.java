@@ -1,7 +1,6 @@
 package br.com.riannegreiros.AiTaskApp.service;
 
 import java.time.Instant;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
@@ -11,6 +10,8 @@ import br.com.riannegreiros.AiTaskApp.dto.LoginRequest;
 import br.com.riannegreiros.AiTaskApp.dto.LoginResponse;
 import br.com.riannegreiros.AiTaskApp.dto.RegisterRequest;
 import br.com.riannegreiros.AiTaskApp.dto.RegisterResponse;
+import br.com.riannegreiros.AiTaskApp.infra.exception.InvalidCredentialsException;
+import br.com.riannegreiros.AiTaskApp.infra.exception.UserAlreadyExistsException;
 import br.com.riannegreiros.AiTaskApp.model.User;
 import br.com.riannegreiros.AiTaskApp.repository.UserRepository;
 import jakarta.transaction.Transactional;
@@ -32,7 +33,8 @@ public class UserService {
     public RegisterResponse saveUser(RegisterRequest request) {
         User userExists = userRepository.findByEmail(request.email());
         if (userExists != null) {
-            throw new RuntimeException("User with email " + request.email() + " already exists");
+            throw new UserAlreadyExistsException(
+                    "User with email " + request.email() + " already exists");
         }
 
         User user = new User();
@@ -49,7 +51,7 @@ public class UserService {
         User user = userRepository.findByEmail(request.email());
 
         if (user == null || !isLoginPasswordCorrect(request, user.getPassword())) {
-            throw new BadCredentialsException("Invalid email or password");
+            throw new InvalidCredentialsException("Invalid email or password");
         }
 
         var now = Instant.now();
