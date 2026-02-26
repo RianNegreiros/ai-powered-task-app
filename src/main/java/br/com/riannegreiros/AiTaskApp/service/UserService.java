@@ -1,7 +1,6 @@
 package br.com.riannegreiros.AiTaskApp.service;
 
 import java.time.Instant;
-
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
@@ -14,54 +13,58 @@ import br.com.riannegreiros.AiTaskApp.dto.RegisterRequest;
 import br.com.riannegreiros.AiTaskApp.dto.RegisterResponse;
 import br.com.riannegreiros.AiTaskApp.model.User;
 import br.com.riannegreiros.AiTaskApp.repository.UserRepository;
+import jakarta.transaction.Transactional;
 
 @Service
 public class UserService {
-  private UserRepository userRepository;
-  private BCryptPasswordEncoder passwordEncoder;
-  private JwtEncoder jwtEncoder;
+    private UserRepository userRepository;
+    private BCryptPasswordEncoder passwordEncoder;
+    private JwtEncoder jwtEncoder;
 
-  public UserService(UserRepository userRepository, BCryptPasswordEncoder passwordEncoder, JwtEncoder jwtEncoder) {
-    this.userRepository = userRepository;
-    this.passwordEncoder = passwordEncoder;
-    this.jwtEncoder = jwtEncoder;
-}
-
-  public RegisterResponse saveUser(RegisterRequest request) {
-    User userExists = userRepository.findByEmail(request.email());
-    if (userExists != null) {
-      throw new RuntimeException("User with email " + request.email() + " already exists");
+    public UserService(UserRepository userRepository, BCryptPasswordEncoder passwordEncoder,
+            JwtEncoder jwtEncoder) {
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.jwtEncoder = jwtEncoder;
     }
 
-    User user = new User();
-    user.setName(request.name());
-    user.setEmail(request.email());
-    user.setPassword(passwordEncoder.encode(request.password()));
+    @Transactional
+    public RegisterResponse saveUser(RegisterRequest request) {
+        User userExists = userRepository.findByEmail(request.email());
+        if (userExists != null) {
+            throw new RuntimeException("User with email " + request.email() + " already exists");
+        }
 
-    User newUser = userRepository.save(user);
+        User user = new User();
+        user.setName(request.name());
+        user.setEmail(request.email());
+        user.setPassword(passwordEncoder.encode(request.password()));
 
-    return new RegisterResponse(newUser.getName(), newUser.getEmail());
-  }
+        User newUser = userRepository.save(user);
 
-  public LoginResponse authenticateUser(LoginRequest request) {
-    User user = userRepository.findByEmail(request.email());
+        return new RegisterResponse(newUser.getName(), newUser.getEmail());
+    }
 
-if (user == null || !user.isLoginPasswordCorrect(request, passwordEncoder)) {
-    throw new BadCredentialsException("Invalid email or password");
-}
+    public LoginResponse authenticateUser(LoginRequest request) {
+        User user = userRepository.findByEmail(request.email());
 
-    var now = Instant.now();
-    var expiresIn = 1800L;
+        if (user == null || !isLoginPasswordCorrect(request, user.getPassword())) {
+            throw new BadCredentialsException("Invalid email or password");
+        }
 
-    var claims = JwtClaimsSet.builder()
-        .issuer("ai-powered-task-app")
-        .subject(user.getId().toString())
-        .issuedAt(now)
-        .expiresAt(now.plusSeconds(expiresIn))
-        .build();
+        var now = Instant.now();
+        var expiresIn = 1800L;
+
+        var claims = JwtClaimsSet.builder().issuer("ai-powered-task-app")
+                .subject(user.getId().toString()).issuedAt(now)
+                .expiresAt(now.plusSeconds(expiresIn)).build();
 
         var jwtValue = jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
 
         return new LoginResponse(jwtValue, expiresIn);
-  }
+    }
+
+    public boolean isLoginPasswordCorrect(LoginRequest request, String userPassword) {
+        return passwordEncoder.matches(request.password(), userPassword);
+    }
 }
