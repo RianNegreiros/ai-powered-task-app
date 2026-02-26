@@ -2,7 +2,6 @@ package br.com.riannegreiros.AiTaskApp.config;
 
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,10 +16,9 @@ import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-
+import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
-import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 
 @Configuration
@@ -35,12 +33,13 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) {
-        http.authorizeHttpRequests(authorized -> authorized
-            .requestMatchers(HttpMethod.POST, "/api/auth/**").permitAll()
-            .anyRequest().authenticated())
-        .csrf(csrf -> csrf.disable())
-        .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
-        .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+        http.authorizeHttpRequests(
+                authorized -> authorized.requestMatchers(HttpMethod.POST, "/api/auth/**")
+                        .permitAll().anyRequest().authenticated())
+                .csrf(csrf -> csrf.disable())
+                .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
+                .sessionManagement(
+                        session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
         return http.build();
     }
