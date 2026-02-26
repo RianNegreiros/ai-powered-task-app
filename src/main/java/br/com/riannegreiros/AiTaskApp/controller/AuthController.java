@@ -11,25 +11,26 @@ import br.com.riannegreiros.AiTaskApp.dto.LoginResponse;
 import br.com.riannegreiros.AiTaskApp.dto.RegisterRequest;
 import br.com.riannegreiros.AiTaskApp.dto.RegisterResponse;
 import br.com.riannegreiros.AiTaskApp.service.UserService;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
-    private UserService userService;
+  private UserService userService;
 
     public AuthController(UserService userService) {
         this.userService = userService;
     }
 
     @PostMapping("/register")
-    public ResponseEntity<RegisterResponse> registration(@RequestBody RegisterRequest request) {
+  public ResponseEntity<RegisterResponse> registration(@Valid @RequestBody RegisterRequest request) {
         RegisterResponse newUser = userService.saveUser(request);
 
         return ResponseEntity.ok(newUser);
     }
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
+    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
         LoginResponse loginResponse = userService.authenticateUser(request);
 
         return ResponseEntity.ok(loginResponse);
