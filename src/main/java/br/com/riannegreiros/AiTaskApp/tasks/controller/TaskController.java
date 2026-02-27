@@ -6,11 +6,13 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import br.com.riannegreiros.AiTaskApp.tasks.dto.TaskRequest;
 import br.com.riannegreiros.AiTaskApp.tasks.dto.TaskResponse;
+import br.com.riannegreiros.AiTaskApp.tasks.dto.UpdateTaskRequest;
 import br.com.riannegreiros.AiTaskApp.tasks.service.TaskService;
 import jakarta.validation.Valid;
 
@@ -38,9 +40,16 @@ public class TaskController {
     }
 
     @GetMapping("/me/{id}")
-    public ResponseEntity<TaskResponse> listAllUserTasks(@PathVariable String id,
+    public ResponseEntity<TaskResponse> getTask(@PathVariable String id,
             JwtAuthenticationToken token) {
         TaskResponse task = taskService.getTask(id, token);
+        return ResponseEntity.ok(task);
+    }
+
+    @PutMapping("/me")
+    public ResponseEntity<TaskResponse> updateTask(@Valid @RequestBody UpdateTaskRequest request,
+            JwtAuthenticationToken token) {
+        TaskResponse task = taskService.updateTask(request, token);
         return ResponseEntity.ok(task);
     }
 }

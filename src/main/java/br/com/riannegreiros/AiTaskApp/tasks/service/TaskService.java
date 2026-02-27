@@ -9,6 +9,7 @@ import br.com.riannegreiros.AiTaskApp.infra.exception.TaskNotFoundException;
 import br.com.riannegreiros.AiTaskApp.infra.exception.UserNotFoundException;
 import br.com.riannegreiros.AiTaskApp.tasks.dto.TaskRequest;
 import br.com.riannegreiros.AiTaskApp.tasks.dto.TaskResponse;
+import br.com.riannegreiros.AiTaskApp.tasks.dto.UpdateTaskRequest;
 import br.com.riannegreiros.AiTaskApp.tasks.model.Task;
 import br.com.riannegreiros.AiTaskApp.tasks.repository.TaskRepository;
 
@@ -61,6 +62,26 @@ public class TaskService {
 
         Task task = taskRepository.findById(Long.parseLong(taskId))
                 .orElseThrow(() -> new TaskNotFoundException("Task not found with ID" + taskId));
+
+        return new TaskResponse(task.getId().toString(), user.getId().toString(), task.getTitle(),
+                task.getPriority(), task.getDueDate(), task.getTag(), task.getDescription(),
+                task.getCreatedAt());
+    }
+
+    public TaskResponse updateTask(UpdateTaskRequest request, JwtAuthenticationToken token) {
+        User user = userRepository.findById(Long.parseLong(token.getName())).orElseThrow(
+                () -> new UserNotFoundException("User not found with ID: " + token.getName()));
+
+        Task task = taskRepository.findById(Long.parseLong(request.id())).orElseThrow(
+                () -> new TaskNotFoundException("Task not found with ID" + request.id()));
+
+        task.setTitle(request.title());
+        task.setDescription(request.description());
+        task.setDueDate(request.dueDate());
+        task.setPriority(request.priority());
+        task.setTag(request.tag());
+
+        taskRepository.save(task);
 
         return new TaskResponse(task.getId().toString(), user.getId().toString(), task.getTitle(),
                 task.getPriority(), task.getDueDate(), task.getTag(), task.getDescription(),
