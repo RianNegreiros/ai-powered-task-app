@@ -41,8 +41,8 @@ public class TaskService {
         taskRepository.save(task);
 
         return new TaskResponse(task.getId().toString(), user.getId().toString(), task.getTitle(),
-                task.getPriority(), task.getDueDate(), task.getTag(), task.getDescription(),
-                task.getCreatedAt());
+                task.getPriority(), task.getDueDate(), task.isCompleted(), task.getTag(),
+                task.getDescription(), task.getCreatedAt(), task.getUpdatedAt());
     }
 
     public List<TaskResponse> listAllUserTasks(JwtAuthenticationToken token) {
@@ -51,8 +51,9 @@ public class TaskService {
 
         return taskRepository.findAllByUserId(user.getId()).stream()
                 .map(task -> new TaskResponse(task.getId().toString(), user.getId().toString(),
-                        task.getTitle(), task.getPriority(), task.getDueDate(), task.getTag(),
-                        task.getDescription(), task.getCreatedAt()))
+                        task.getTitle(), task.getPriority(), task.getDueDate(), task.isCompleted(),
+                        task.getTag(), task.getDescription(), task.getCreatedAt(),
+                        task.getUpdatedAt()))
                 .toList();
     }
 
@@ -61,11 +62,11 @@ public class TaskService {
                 () -> new UserNotFoundException("User not found with ID: " + token.getName()));
 
         Task task = taskRepository.findById(Long.parseLong(taskId))
-                .orElseThrow(() -> new TaskNotFoundException("Task not found with ID" + taskId));
+                .orElseThrow(() -> new TaskNotFoundException("Task not found with ID: " + taskId));
 
         return new TaskResponse(task.getId().toString(), user.getId().toString(), task.getTitle(),
-                task.getPriority(), task.getDueDate(), task.getTag(), task.getDescription(),
-                task.getCreatedAt());
+                task.getPriority(), task.getDueDate(), task.isCompleted(), task.getTag(),
+                task.getDescription(), task.getCreatedAt(), task.getUpdatedAt());
     }
 
     public TaskResponse updateTask(UpdateTaskRequest request, JwtAuthenticationToken token) {
@@ -73,7 +74,7 @@ public class TaskService {
                 () -> new UserNotFoundException("User not found with ID: " + token.getName()));
 
         Task task = taskRepository.findById(Long.parseLong(request.id())).orElseThrow(
-                () -> new TaskNotFoundException("Task not found with ID" + request.id()));
+                () -> new TaskNotFoundException("Task not found with ID: " + request.id()));
 
         task.setTitle(request.title());
         task.setDescription(request.description());
@@ -84,8 +85,8 @@ public class TaskService {
         taskRepository.save(task);
 
         return new TaskResponse(task.getId().toString(), user.getId().toString(), task.getTitle(),
-                task.getPriority(), task.getDueDate(), task.getTag(), task.getDescription(),
-                task.getCreatedAt());
+                task.getPriority(), task.getDueDate(), task.isCompleted(), task.getTag(),
+                task.getDescription(), task.getCreatedAt(), task.getUpdatedAt());
     }
 
     public void deleteTask(String id, JwtAuthenticationToken token) {
@@ -93,8 +94,23 @@ public class TaskService {
                 () -> new UserNotFoundException("User not found with ID: " + token.getName()));
 
         Task task = taskRepository.findById(Long.parseLong(id))
-                .orElseThrow(() -> new TaskNotFoundException("Task not found with ID" + id));
+                .orElseThrow(() -> new TaskNotFoundException("Task not found with ID: " + id));
 
         taskRepository.delete(task);
+    }
+
+    public TaskResponse setTaskCompleted(String id, JwtAuthenticationToken token) {
+        User user = userRepository.findById(Long.parseLong(token.getName())).orElseThrow(
+                () -> new UserNotFoundException("User not found with ID: " + token.getName()));
+
+        Task task = taskRepository.findById(Long.parseLong(id))
+                .orElseThrow(() -> new TaskNotFoundException("Task not found with ID: " + id));
+
+        task.setCompleted(true);
+        taskRepository.save(task);
+
+        return new TaskResponse(task.getId().toString(), user.getId().toString(), task.getTitle(),
+                task.getPriority(), task.getDueDate(), task.isCompleted(), task.getTag(),
+                task.getDescription(), task.getCreatedAt(), task.getUpdatedAt());
     }
 }

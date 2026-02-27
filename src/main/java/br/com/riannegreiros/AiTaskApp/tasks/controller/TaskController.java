@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -58,6 +59,13 @@ public class TaskController {
     public ResponseEntity<String> deleteTask(@PathVariable String id,
             JwtAuthenticationToken token) {
         taskService.deleteTask(id, token);
-        return ResponseEntity.ok("Task with ID " + id + " deleted successfully.");
+        return ResponseEntity.ok("Task with ID: " + id + " deleted successfully.");
+    }
+
+    @PatchMapping("/me/{id}")
+    public ResponseEntity<TaskResponse> setTaskCompleted(@PathVariable String id,
+            JwtAuthenticationToken token) {
+        TaskResponse reponse = taskService.setTaskCompleted(id, token);
+        return ResponseEntity.ok(reponse);
     }
 }
