@@ -1,4 +1,4 @@
-package br.com.riannegreiros.AiTaskApp.service;
+package br.com.riannegreiros.AiTaskApp.auth.service;
 
 import java.time.Instant;
 import org.springframework.beans.factory.annotation.Value;
@@ -9,14 +9,14 @@ import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.stereotype.Service;
-import br.com.riannegreiros.AiTaskApp.dto.AuthResponse;
-import br.com.riannegreiros.AiTaskApp.dto.LoginRequest;
-import br.com.riannegreiros.AiTaskApp.dto.RegisterRequest;
-import br.com.riannegreiros.AiTaskApp.dto.RegisterResponse;
+import br.com.riannegreiros.AiTaskApp.auth.dto.AuthResponse;
+import br.com.riannegreiros.AiTaskApp.auth.dto.LoginRequest;
+import br.com.riannegreiros.AiTaskApp.auth.dto.RegisterRequest;
+import br.com.riannegreiros.AiTaskApp.auth.dto.RegisterResponse;
+import br.com.riannegreiros.AiTaskApp.auth.model.User;
+import br.com.riannegreiros.AiTaskApp.auth.repository.UserRepository;
 import br.com.riannegreiros.AiTaskApp.infra.exception.InvalidCredentialsException;
 import br.com.riannegreiros.AiTaskApp.infra.exception.UserAlreadyExistsException;
-import br.com.riannegreiros.AiTaskApp.model.User;
-import br.com.riannegreiros.AiTaskApp.repository.UserRepository;
 import jakarta.transaction.Transactional;
 
 @Service

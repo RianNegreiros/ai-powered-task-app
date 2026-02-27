@@ -1,8 +1,8 @@
-package br.com.riannegreiros.AiTaskApp.repository;
+package br.com.riannegreiros.AiTaskApp.auth.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
-import br.com.riannegreiros.AiTaskApp.model.User;
+import br.com.riannegreiros.AiTaskApp.auth.model.User;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {

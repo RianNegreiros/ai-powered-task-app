@@ -10,6 +10,13 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleUserNotFound(UserNotFoundException ex) {
+        ErrorResponse error = new ErrorResponse(ex.getMessage(), HttpStatus.CONFLICT.value(),
+                LocalDateTime.now());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+
     @ExceptionHandler(UserAlreadyExistsException.class)
     public ResponseEntity<ErrorResponse> handleUserAlreadyExists(UserAlreadyExistsException ex) {
         ErrorResponse error = new ErrorResponse(ex.getMessage(), HttpStatus.CONFLICT.value(),
