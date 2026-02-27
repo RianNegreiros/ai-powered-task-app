@@ -19,7 +19,8 @@ services:
 
   backend:
     build:
-      context: .
+      context: ./backend
+      dockerfile: Dockerfile
     environment:
       - SPRING_PROFILES_ACTIVE=docker
     ports:
@@ -27,6 +28,20 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    networks:
+      - app-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend
     networks:
       - app-network
 
