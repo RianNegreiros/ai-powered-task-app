@@ -25,3 +25,7 @@ jwt:
   issuer: ai-powered-task-app
   token-expiry: 1800
   refresh-token-expiry: 604800
+
+app:
+  frontend:
+    url: http://localhost:5173

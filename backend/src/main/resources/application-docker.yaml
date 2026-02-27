@@ -26,6 +26,10 @@ jwt:
   token-expiry: 1800
   refresh-token-expiry: 604800
 
+app:
+  frontend:
+    url: http://localhost:5173
+
 logging:
   level:
     "[org.springframework.security]": DEBUG
