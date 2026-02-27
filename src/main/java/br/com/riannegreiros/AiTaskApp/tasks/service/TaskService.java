@@ -1,5 +1,6 @@
 package br.com.riannegreiros.AiTaskApp.tasks.service;
 
+import java.util.List;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
 import br.com.riannegreiros.AiTaskApp.auth.model.User;
@@ -40,5 +41,16 @@ public class TaskService {
         return new TaskResponse(task.getId().toString(), user.getId().toString(), task.getTitle(),
                 task.getPriority(), task.getDueDate(), task.getTag(), task.getDescription(),
                 task.getCreatedAt());
+    }
+
+    public List<TaskResponse> listAllUserTasks(JwtAuthenticationToken token) {
+        User user = userRepository.findById(Long.parseLong(token.getName())).orElseThrow(
+                () -> new UserNotFoundException("User not found with ID: " + token.getName()));
+
+        return taskRepository.findAllByUserId(user.getId()).stream()
+                .map(task -> new TaskResponse(task.getId().toString(), user.getId().toString(),
+                        task.getTitle(), task.getPriority(), task.getDueDate(), task.getTag(),
+                        task.getDescription(), task.getCreatedAt()))
+                .toList();
     }
 }
