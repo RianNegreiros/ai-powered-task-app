@@ -1,4 +1,4 @@
-package br.com.riannegreiros.AiTaskApp.dto;
+package br.com.riannegreiros.AiTaskApp.auth.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;

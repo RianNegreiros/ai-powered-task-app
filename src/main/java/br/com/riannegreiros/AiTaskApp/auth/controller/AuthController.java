@@ -1,16 +1,16 @@
-package br.com.riannegreiros.AiTaskApp.controller;
+package br.com.riannegreiros.AiTaskApp.auth.controller;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import br.com.riannegreiros.AiTaskApp.dto.AuthResponse;
-import br.com.riannegreiros.AiTaskApp.dto.LoginRequest;
-import br.com.riannegreiros.AiTaskApp.dto.RefreshTokenRequest;
-import br.com.riannegreiros.AiTaskApp.dto.RegisterRequest;
-import br.com.riannegreiros.AiTaskApp.dto.RegisterResponse;
-import br.com.riannegreiros.AiTaskApp.service.UserService;
+import br.com.riannegreiros.AiTaskApp.auth.dto.AuthResponse;
+import br.com.riannegreiros.AiTaskApp.auth.dto.LoginRequest;
+import br.com.riannegreiros.AiTaskApp.auth.dto.RefreshTokenRequest;
+import br.com.riannegreiros.AiTaskApp.auth.dto.RegisterRequest;
+import br.com.riannegreiros.AiTaskApp.auth.dto.RegisterResponse;
+import br.com.riannegreiros.AiTaskApp.auth.service.UserService;
 import jakarta.validation.Valid;
 
 @RestController
