@@ -22,3 +22,6 @@ jwt:
     key: classpath:/app.pub
   private:
     key: classpath:/app.key
+  issuer: ai-powered-task-app
+  token-expiry: 1800
+  refresh-token-expiry: 604800
