@@ -5,6 +5,7 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.stereotype.Service;
 import br.com.riannegreiros.AiTaskApp.auth.model.User;
 import br.com.riannegreiros.AiTaskApp.auth.repository.UserRepository;
+import br.com.riannegreiros.AiTaskApp.infra.exception.TaskNotFoundException;
 import br.com.riannegreiros.AiTaskApp.infra.exception.UserNotFoundException;
 import br.com.riannegreiros.AiTaskApp.tasks.dto.TaskRequest;
 import br.com.riannegreiros.AiTaskApp.tasks.dto.TaskResponse;
@@ -52,5 +53,17 @@ public class TaskService {
                         task.getTitle(), task.getPriority(), task.getDueDate(), task.getTag(),
                         task.getDescription(), task.getCreatedAt()))
                 .toList();
+    }
+
+    public TaskResponse getTask(String taskId, JwtAuthenticationToken token) {
+        User user = userRepository.findById(Long.parseLong(token.getName())).orElseThrow(
+                () -> new UserNotFoundException("User not found with ID: " + token.getName()));
+
+        Task task = taskRepository.findById(Long.parseLong(taskId))
+                .orElseThrow(() -> new TaskNotFoundException("Task not found with ID" + taskId));
+
+        return new TaskResponse(task.getId().toString(), user.getId().toString(), task.getTitle(),
+                task.getPriority(), task.getDueDate(), task.getTag(), task.getDescription(),
+                task.getCreatedAt());
     }
 }

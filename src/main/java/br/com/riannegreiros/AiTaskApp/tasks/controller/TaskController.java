@@ -4,6 +4,7 @@ import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -34,5 +35,12 @@ public class TaskController {
     public ResponseEntity<List<TaskResponse>> listAllUserTasks(JwtAuthenticationToken token) {
         List<TaskResponse> tasks = taskService.listAllUserTasks(token);
         return ResponseEntity.ok(tasks);
+    }
+
+    @GetMapping("/me/{id}")
+    public ResponseEntity<TaskResponse> listAllUserTasks(@PathVariable String id,
+            JwtAuthenticationToken token) {
+        TaskResponse task = taskService.getTask(id, token);
+        return ResponseEntity.ok(task);
     }
 }
