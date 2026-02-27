@@ -28,11 +28,11 @@ Infrastructure:
 
 ## User Stories
 
-- As a user, I want to create an account so my todos are private
-- As a user, I want to create, edit, and delete todos
-- As a user, I want to mark todos as complete
+- As a user, I want to create an account so my tasks are private
+- As a user, I want to create, edit, and delete tasks
+- As a user, I want to mark tasks as complete
 - As a user, I want to set due dates and priorities
-- As a user, I want to organize todos with tags/categories
+- As a user, I want to organize tasks with tags/categories
 
 ### AI Features
 - As a user, I want weekly reports showing my productivity patterns
@@ -46,13 +46,13 @@ POST   /api/auth/register
 POST   /api/auth/login
 POST   /api/auth/refresh-token
 
-### Todos
-GET    /api/todos              # List with pagination & filters
-GET    /api/todos/:id          # Get single todo
-POST   /api/todos              # Create todo
-PUT    /api/todos/:id          # Update todo
-DELETE /api/todos/:id          # Delete todo
-PATCH  /api/todos/:id/complete # Toggle completion
+### tasks
+GET    /api/tasks              # List with pagination & filters
+GET    /api/tasks/:id          # Get single todo
+POST   /api/tasks              # Create todo
+PUT    /api/tasks/:id          # Update todo
+DELETE /api/tasks/:id          # Delete todo
+PATCH  /api/tasks/:id/complete # Toggle completion
 
 ### Tags
 GET    /api/tags

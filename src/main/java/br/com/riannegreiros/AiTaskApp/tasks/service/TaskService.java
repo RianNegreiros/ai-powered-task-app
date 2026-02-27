@@ -1,0 +1,44 @@
+package br.com.riannegreiros.AiTaskApp.tasks.service;
+
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+import org.springframework.stereotype.Service;
+import br.com.riannegreiros.AiTaskApp.auth.model.User;
+import br.com.riannegreiros.AiTaskApp.auth.repository.UserRepository;
+import br.com.riannegreiros.AiTaskApp.infra.exception.UserNotFoundException;
+import br.com.riannegreiros.AiTaskApp.tasks.dto.TaskRequest;
+import br.com.riannegreiros.AiTaskApp.tasks.dto.TaskResponse;
+import br.com.riannegreiros.AiTaskApp.tasks.model.Task;
+import br.com.riannegreiros.AiTaskApp.tasks.repository.TaskRepository;
+
+@Service
+public class TaskService {
+    private TaskRepository taskRepository;
+    private UserRepository userRepository;
+
+    public TaskService(TaskRepository taskRepository, UserRepository userRepository) {
+        this.taskRepository = taskRepository;
+        this.userRepository = userRepository;
+    }
+
+    public TaskResponse saveTask(TaskRequest request, JwtAuthenticationToken token) {
+        User user = userRepository.findById(token.getName());
+
+        if (user == null) {
+            throw new UserNotFoundException("User not found with ID: " + token.getName());
+        }
+
+        Task task = new Task();
+        task.setTitle(request.title());
+        task.setPriority(request.priority());
+        task.setDueDate(request.dueDate());
+        task.setTag(request.tag());
+        task.setDescription(request.description());
+        task.setUser(user);
+
+        taskRepository.save(task);
+
+        return new TaskResponse(task.getId().toString(), user.getId().toString(), task.getTitle(),
+                task.getPriority(), task.getDueDate(), task.getTag(), task.getDescription(),
+                task.getCreatedAt());
+    }
+}
