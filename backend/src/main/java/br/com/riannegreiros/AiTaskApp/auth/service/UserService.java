@@ -8,15 +8,18 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.security.oauth2.jwt.JwtException;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
 import br.com.riannegreiros.AiTaskApp.auth.dto.AuthResponse;
 import br.com.riannegreiros.AiTaskApp.auth.dto.LoginRequest;
 import br.com.riannegreiros.AiTaskApp.auth.dto.RegisterRequest;
 import br.com.riannegreiros.AiTaskApp.auth.dto.RegisterResponse;
+import br.com.riannegreiros.AiTaskApp.auth.dto.UserResponse;
 import br.com.riannegreiros.AiTaskApp.auth.model.User;
 import br.com.riannegreiros.AiTaskApp.auth.repository.UserRepository;
 import br.com.riannegreiros.AiTaskApp.infra.exception.InvalidCredentialsException;
 import br.com.riannegreiros.AiTaskApp.infra.exception.UserAlreadyExistsException;
+import br.com.riannegreiros.AiTaskApp.infra.exception.UserNotFoundException;
 import jakarta.transaction.Transactional;
 
 @Service
@@ -114,5 +117,12 @@ public class UserService {
 
     private boolean isLoginPasswordCorrect(LoginRequest request, String userPassword) {
         return passwordEncoder.matches(request.password(), userPassword);
+    }
+
+    public UserResponse getUserInfo(JwtAuthenticationToken token) {
+        User user = userRepository.findById(Long.parseLong(token.getName())).orElseThrow(
+                () -> new UserNotFoundException("User not found with ID: " + token.getName()));
+
+        return new UserResponse(user.getId().toString(), user.getName(), user.getEmail());
     }
 }
