@@ -2,7 +2,7 @@ spring:
   application:
     name: AiTaskApp
   datasource:
-    url: jdbc:postgresql://localhost:5432/backend_db
+    url: jdbc:postgresql://postgres:5432/backend_db
     username: postgres
     password: postgres
     driver-class-name: org.postgresql.Driver
@@ -25,3 +25,8 @@ jwt:
   issuer: ai-powered-task-app
   token-expiry: 1800
   refresh-token-expiry: 604800
+
+logging:
+  level:
+    "[org.springframework.security]": DEBUG
+    "[br.com.riannegreiros.AiTaskApp]": DEBUG
