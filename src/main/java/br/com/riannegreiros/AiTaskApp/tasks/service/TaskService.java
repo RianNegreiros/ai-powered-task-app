@@ -87,4 +87,14 @@ public class TaskService {
                 task.getPriority(), task.getDueDate(), task.getTag(), task.getDescription(),
                 task.getCreatedAt());
     }
+
+    public void deleteTask(String id, JwtAuthenticationToken token) {
+        userRepository.findById(Long.parseLong(token.getName())).orElseThrow(
+                () -> new UserNotFoundException("User not found with ID: " + token.getName()));
+
+        Task task = taskRepository.findById(Long.parseLong(id))
+                .orElseThrow(() -> new TaskNotFoundException("Task not found with ID" + id));
+
+        taskRepository.delete(task);
+    }
 }

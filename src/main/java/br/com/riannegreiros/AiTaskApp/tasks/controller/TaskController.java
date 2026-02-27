@@ -3,6 +3,7 @@ package br.com.riannegreiros.AiTaskApp.tasks.controller;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -51,5 +52,12 @@ public class TaskController {
             JwtAuthenticationToken token) {
         TaskResponse task = taskService.updateTask(request, token);
         return ResponseEntity.ok(task);
+    }
+
+    @DeleteMapping("/me/{id}")
+    public ResponseEntity<String> deleteTask(@PathVariable String id,
+            JwtAuthenticationToken token) {
+        taskService.deleteTask(id, token);
+        return ResponseEntity.ok("Task with ID " + id + " deleted successfully.");
     }
 }
