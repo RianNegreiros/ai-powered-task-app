@@ -1,11 +1,12 @@
-'use client'
-
-import { useState, useCallback } from 'react'
-import { LogOut } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { LogOut, User } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { toast } from 'sonner'
 import { GlassPanel } from './glass-panel'
 import { TodoInput } from './todo-input'
-import { TodoItem, type Todo, type Priority, type Tag } from './todo-item'
+import { TodoItem, type Priority, type Tag, type Task } from './todo-item'
 import { useAuth } from './auth-context'
+import { createTask, deleteTask, getTasks, setTaskCompleted } from '@/lib/api-tasks'
 
 const priorityWeight: Record<Priority, number> = {
   critical: 0,
@@ -15,97 +16,81 @@ const priorityWeight: Record<Priority, number> = {
   none: 4,
 }
 
-const tomorrow = new Date()
-tomorrow.setDate(tomorrow.getDate() + 1)
-const nextWeek = new Date()
-nextWeek.setDate(nextWeek.getDate() + 5)
-const yesterday = new Date()
-yesterday.setDate(yesterday.getDate() - 1)
-
-const initialTodos: Todo[] = [
-  {
-    id: '1',
-    text: 'Review quarterly design updates',
-    completed: false,
-    createdAt: new Date(Date.now() - 3600000),
-    priority: 'critical',
-    dueDate: new Date(),
-    tag: 'Work',
-  },
-  {
-    id: '2',
-    text: 'Pick up groceries',
-    completed: true,
-    createdAt: new Date(Date.now() - 7200000),
-    priority: 'none',
-    dueDate: null,
-    tag: 'Errands',
-  },
-  {
-    id: '3',
-    text: 'Morning meditation',
-    completed: false,
-    createdAt: new Date(Date.now() - 10800000),
-    priority: 'low',
-    dueDate: tomorrow,
-    tag: 'Health',
-  },
-  {
-    id: '4',
-    text: 'Call mom about weekend plans',
-    completed: false,
-    createdAt: new Date(Date.now() - 14400000),
-    priority: 'none',
-    dueDate: null,
-    tag: null,
-  },
-  {
-    id: '5',
-    text: 'Ship feature PR',
-    completed: false,
-    createdAt: new Date(Date.now() - 1800000),
-    priority: 'high',
-    dueDate: tomorrow,
-    tag: 'Work',
-  },
-]
+const mapApiTask = (t: Task): Task => ({
+  id: t.id,
+  title: t.title,
+  completed: t.completed,
+  createdAt: new Date(t.createdAt),
+  priority: (t.priority?.toLowerCase() || 'none') as Priority,
+  dueDate: t.dueDate ? new Date(t.dueDate) : null,
+  tag: t.tag as Tag,
+})
 
 export function TodoApp() {
   const { user, logout } = useAuth()
-  const [todos, setTodos] = useState<Todo[]>(initialTodos)
+  const [todos, setTodos] = useState<Task[]>([])
+  const [isLoading, setIsLoading] = useState(true)
 
-  const addTodo = useCallback(
-    (text: string, priority: Priority, dueDate: Date | null, tag: Tag) => {
-      const newTodo: Todo = {
-        id: crypto.randomUUID(),
-        text,
-        completed: false,
-        createdAt: new Date(),
-        priority,
-        dueDate,
-        tag,
+  useEffect(() => {
+    getTasks()
+      .then((data) => setTodos(data.map(mapApiTask)))
+      .catch(() => toast.error('Failed to load tasks'))
+      .finally(() => setIsLoading(false))
+  }, [])
+
+  const handleCreateTask = async (
+    title: string,
+    priority: Priority,
+    dueDate: Date | null,
+    tag: Tag
+  ) => {
+    try {
+      const data = await createTask({
+        title,
+        priority: priority !== 'none' ? priority.toUpperCase() : undefined,
+        dueDate: dueDate?.toISOString(),
+        tag: tag || undefined,
+      })
+      setTodos((prev) => [mapApiTask(data), ...prev])
+      toast.success('Task created')
+    } catch {
+      toast.error('Failed to create task')
+    }
+  }
+
+  const handleToggleTask = async (id: string) => {
+    const task = todos.find((t) => t.id === id)
+    setTodos((prev) => prev.map((t) => (t.id === id ? { ...t, completed: !t.completed } : t)))
+    try {
+      await setTaskCompleted(id)
+    } catch {
+      setTodos((prev) => prev.map((t) => (t.id === id ? { ...t, completed: !t.completed } : t)))
+      toast.error('Failed to update task')
+    }
+  }
+
+  const handleDeleteTask = async (id: string) => {
+    const task = todos.find((t) => t.id === id)
+    setTodos((prev) => prev.filter((t) => t.id !== id))
+    try {
+      await deleteTask(id)
+      toast.success('Task deleted')
+    } catch {
+      try {
+        const data = await getTasks()
+        setTodos(data.map(mapApiTask))
+      } catch {
+        setTodos((prev) => prev)
       }
-      setTodos((prev) => [newTodo, ...prev])
-    },
-    []
-  )
-
-  const toggleTodo = useCallback((id: string) => {
-    setTodos((prev) =>
-      prev.map((todo) => (todo.id === id ? { ...todo, completed: !todo.completed } : todo))
-    )
-  }, [])
-
-  const deleteTodo = useCallback((id: string) => {
-    setTodos((prev) => prev.filter((todo) => todo.id !== id))
-  }, [])
+      toast.error('Failed to delete task')
+    }
+  }
 
   const incomplete = todos
     .filter((t) => !t.completed)
     .sort((a, b) => {
       const pw = priorityWeight[a.priority] - priorityWeight[b.priority]
       if (pw !== 0) return pw
-      // within same priority, due sooner first
       if (a.dueDate && b.dueDate) return a.dueDate.getTime() - b.dueDate.getTime()
       if (a.dueDate) return -1
       if (b.dueDate) return 1
@@ -120,23 +105,44 @@ export function TodoApp() {
     day: 'numeric',
   })
 
+  if (isLoading) {
+    return (
+      <div className="mx-auto flex w-full max-w-md flex-col gap-6 px-5 py-12 md:py-20">
+        <GlassPanel>
+          <div className="flex items-center justify-center py-12">
+            <p className="text-muted-foreground/60 text-sm">Loading tasks...</p>
+          </div>
+        </GlassPanel>
+      </div>
+    )
+  }
+
   return (
     <div className="mx-auto flex w-full max-w-md flex-col gap-6 px-5 py-12 md:py-20">
-      {/* Header */}
       <header className="flex flex-col gap-1 px-1">
         <div className="flex items-center justify-between">
           <h1 className="text-foreground text-3xl font-semibold tracking-tight">Today</h1>
           <div className="flex items-center gap-3">
             <p className="text-muted-foreground text-sm">{dateStr}</p>
             {user && (
-              <button
-                onClick={logout}
-                className="bg-glass-bg/60 border-glass-border text-muted-foreground hover:text-foreground hover:bg-glass-bg flex size-8 items-center justify-center rounded-full border backdrop-blur-xl transition-all duration-200"
-                aria-label="Sign out"
-                title="Sign out"
-              >
-                <LogOut className="size-3.5" />
-              </button>
+              <>
+                <Link
+                  to="/profile"
+                  className="bg-glass-bg/60 border-glass-border text-muted-foreground hover:text-foreground hover:bg-glass-bg flex size-8 cursor-pointer items-center justify-center rounded-full border backdrop-blur-xl transition-all duration-200"
+                  aria-label="Profile"
+                  title="Profile"
+                >
+                  <User className="size-3.5" />
+                </Link>
+                <button
+                  onClick={logout}
+                  className="bg-glass-bg/60 border-glass-border text-muted-foreground hover:text-foreground hover:bg-glass-bg flex size-8 cursor-pointer items-center justify-center rounded-full border backdrop-blur-xl transition-all duration-200"
+                  aria-label="Sign out"
+                  title="Sign out"
+                >
+                  <LogOut className="size-3.5" />
+                </button>
+              </>
             )}
           </div>
         </div>
@@ -148,26 +154,21 @@ export function TodoApp() {
         )}
       </header>
 
-      {/* Todo list card */}
       <GlassPanel>
-        {/* Input */}
-        <TodoInput onAdd={addTodo} />
+        <TodoInput onAdd={handleCreateTask} />
 
-        {/* Divider */}
         {todos.length > 0 && <div className="bg-glass-border/60 mx-4 h-px" />}
 
-        {/* Incomplete items */}
         {incomplete.map((todo, i) => (
           <TodoItem
             key={todo.id}
             todo={todo}
-            onToggle={toggleTodo}
-            onDelete={deleteTodo}
+            onToggle={handleToggleTask}
+            onDelete={handleDeleteTask}
             index={i}
           />
         ))}
 
-        {/* Completed section */}
         {completed.length > 0 && incomplete.length > 0 && (
           <div className="flex items-center gap-3 px-4 py-2">
             <div className="bg-glass-border/40 h-px flex-1" />
@@ -182,13 +183,12 @@ export function TodoApp() {
           <TodoItem
             key={todo.id}
             todo={todo}
-            onToggle={toggleTodo}
-            onDelete={deleteTodo}
+            onToggle={handleToggleTask}
+            onDelete={handleDeleteTask}
             index={i + incomplete.length}
           />
         ))}
 
-        {/* Empty state */}
         {todos.length === 0 && (
           <div className="flex flex-col items-center py-12">
             <p className="text-muted-foreground/60 text-sm">No tasks yet</p>
@@ -196,7 +196,6 @@ export function TodoApp() {
         )}
       </GlassPanel>
 
-      {/* Subtle task count */}
       {todos.length > 0 && (
         <p className="text-muted-foreground/40 text-center text-xs">
           {incomplete.length} remaining

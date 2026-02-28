@@ -1,17 +1,14 @@
-'use client'
-
 import { useState } from 'react'
 import { X, Calendar, Flag, Tag } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export type Priority = 'low' | 'medium' | 'high' | 'critical' | 'none'
 
-/** A tag is a free-form string used as a category label. */
 export type Tag = string | null
 
-export interface Todo {
+export interface Task {
   id: string
-  text: string
+  title: string
   completed: boolean
   createdAt: Date
   priority: Priority
@@ -75,7 +72,7 @@ function formatDueDate(date: Date): { label: string; isOverdue: boolean; isSoon:
 }
 
 interface TodoItemProps {
-  todo: Todo
+  todo: Task
   onToggle: (id: string) => void
   onDelete: (id: string) => void
   index: number
@@ -83,8 +80,13 @@ interface TodoItemProps {
 
 export function TodoItem({ todo, onToggle, onDelete, index }: TodoItemProps) {
   const [isDeleting, setIsDeleting] = useState(false)
-  const pCfg = priorityConfig[todo.priority]
-  const due = todo.dueDate ? formatDueDate(todo.dueDate) : null
+
+  const pCfg = priorityConfig[todo.priority] || priorityConfig.none
+
+  const due =
+    todo.dueDate instanceof Date && !isNaN(todo.dueDate.getTime())
+      ? formatDueDate(todo.dueDate)
+      : null
 
   const handleDelete = () => {
     setIsDeleting(true)
@@ -105,7 +107,7 @@ export function TodoItem({ todo, onToggle, onDelete, index }: TodoItemProps) {
       <button
         onClick={() => onToggle(todo.id)}
         className={cn(
-          'relative mt-0.5 flex size-[22px] shrink-0 items-center justify-center rounded-full transition-all duration-300',
+          'relative mt-0.5 flex size-[22px] shrink-0 cursor-pointer items-center justify-center rounded-full transition-all duration-300',
           todo.completed
             ? 'bg-primary'
             : cn('hover:border-primary/50 border-[1.5px]', pCfg.ringColor)
@@ -117,6 +119,7 @@ export function TodoItem({ todo, onToggle, onDelete, index }: TodoItemProps) {
             className="text-primary-foreground animate-check-pop size-3"
             viewBox="0 0 16 16"
             fill="none"
+            aria-hidden="true"
           >
             <path
               d="M4 8.5L7 11.5L12 4.5"
@@ -133,13 +136,13 @@ export function TodoItem({ todo, onToggle, onDelete, index }: TodoItemProps) {
       <div className="flex min-w-0 flex-1 flex-col gap-1">
         <span
           className={cn(
-            'text-[15px] leading-relaxed transition-all duration-300',
+            'text-[15px] leading-relaxed break-words transition-all duration-300',
             todo.completed
               ? 'text-muted-foreground/60 decoration-muted-foreground/30 line-through'
               : 'text-foreground'
           )}
         >
-          {todo.text}
+          {todo.title}
         </span>
 
         {/* Meta row: tag + priority badge + due date */}
@@ -147,8 +150,8 @@ export function TodoItem({ todo, onToggle, onDelete, index }: TodoItemProps) {
           <div className="flex flex-wrap items-center gap-2">
             {todo.tag && (
               <span className="bg-foreground/5 text-foreground/60 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium">
-                <Tag className="size-2.5" />
-                {todo.tag}
+                <Tag className="size-2.5" aria-hidden="true" />
+                <span>{todo.tag}</span>
               </span>
             )}
             {todo.priority !== 'none' && (
@@ -159,8 +162,8 @@ export function TodoItem({ todo, onToggle, onDelete, index }: TodoItemProps) {
                   pCfg.color
                 )}
               >
-                <Flag className="size-2.5" />
-                {pCfg.label}
+                <Flag className="size-2.5" aria-hidden="true" />
+                <span>{pCfg.label}</span>
               </span>
             )}
             {due && (
@@ -174,8 +177,8 @@ export function TodoItem({ todo, onToggle, onDelete, index }: TodoItemProps) {
                       : 'bg-glass-bg text-muted-foreground/70'
                 )}
               >
-                <Calendar className="size-2.5" />
-                {due.label}
+                <Calendar className="size-2.5" aria-hidden="true" />
+                <span>{due.label}</span>
               </span>
             )}
           </div>
@@ -186,13 +189,14 @@ export function TodoItem({ todo, onToggle, onDelete, index }: TodoItemProps) {
       <button
         onClick={handleDelete}
         className={cn(
-          'mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full transition-all duration-200',
-          'opacity-0 group-hover:opacity-100',
-          'text-muted-foreground/40 hover:text-destructive hover:bg-destructive/10'
+          'mt-0.5 flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-full transition-all duration-200',
+          'opacity-0 group-hover:opacity-100 focus:opacity-100', // Added focus state for accessibility
+          'text-muted-foreground/40 hover:text-destructive hover:bg-destructive/10',
+          'focus:ring-destructive/50 focus:ring-2 focus:outline-none' // Added focus ring
         )}
-        aria-label="Delete todo"
+        aria-label={`Delete todo: ${todo.title}`}
       >
-        <X className="size-3.5" />
+        <X className="size-3.5" aria-hidden="true" />
       </button>
     </div>
   )
