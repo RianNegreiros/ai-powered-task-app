@@ -11,7 +11,7 @@ export async function createTask(body: {
   title: string
   priority?: string
   dueDate?: string
-  tag?: string
+  tagIds?: string[]
   description?: string
 }): Promise<Task> {
   const payload = Object.fromEntries(Object.entries(body).filter(([_, v]) => v !== undefined))
@@ -36,7 +36,7 @@ export async function updateTask(
     description?: string | null
     priority?: string
     dueDate?: string | null
-    tag?: string | null
+    tagIds?: string[]
   }
 ): Promise<Task> {
   const res = await apiFetch(`/api/tasks/me/${id}`, {

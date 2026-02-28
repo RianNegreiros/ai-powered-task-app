@@ -1,0 +1,1 @@
+ALTER TABLE tb_tasks DROP COLUMN IF EXISTS tag;

@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react'
-import { LogOut, User } from 'lucide-react'
+import { LogOut, User, Tag as TagIcon } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
 import { GlassPanel } from './glass-panel'
 import { TodoInput } from './todo-input'
-import { TodoItem, type Priority, type Tag, type Task } from './todo-item'
+import { TodoItem, type Priority, type TaskTag, type Task } from './todo-item'
 import { useAuth } from './auth-context'
 import { createTask, deleteTask, getTasks, setTaskCompleted, updateTask } from '@/lib/api-tasks'
+import { getTags, type Tag as TagEntity } from '@/lib/api-tags'
 
 const priorityWeight: Record<Priority, number> = {
   critical: 0,
@@ -22,18 +23,22 @@ const mapApiTask = (t: Task): Task => ({
   createdAt: new Date(t.createdAt),
   priority: (t.priority?.toLowerCase() || 'none') as Priority,
   dueDate: t.dueDate ? new Date(t.dueDate) : null,
-  tag: t.tag as Tag,
+  tags: t.tags || [],
 })
 
 export function TodoApp() {
   const { user, logout } = useAuth()
   const [todos, setTodos] = useState<Task[]>([])
+  const [tags, setTags] = useState<TagEntity[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    getTasks()
-      .then((data) => setTodos(data.map(mapApiTask)))
-      .catch(() => toast.error('Failed to load tasks'))
+    Promise.all([getTasks(), getTags()])
+      .then(([tasksData, tagsData]) => {
+        setTodos(tasksData.map(mapApiTask))
+        setTags(tagsData)
+      })
+      .catch(() => toast.error('Failed to load data'))
       .finally(() => setIsLoading(false))
   }, [])
 
@@ -41,7 +46,7 @@ export function TodoApp() {
     title: string,
     priority: Priority,
     dueDate: Date | null,
-    tag: Tag,
+    tags: TaskTag[],
     description: string | null
   ) => {
     try {
@@ -49,7 +54,7 @@ export function TodoApp() {
         title,
         priority: priority !== 'none' ? priority.toUpperCase() : undefined,
         dueDate: dueDate?.toISOString(),
-        tag: tag || undefined,
+        tagIds: tags.map((t) => t.id.toString()),
         description: description || undefined,
       })
       setTodos((prev) => [mapApiTask(data), ...prev])
@@ -83,7 +88,7 @@ export function TodoApp() {
 
   const handleUpdateTask = async (
     id: string,
-    updates: Partial<Pick<Task, 'title' | 'description' | 'priority' | 'dueDate' | 'tag'>>
+    updates: Partial<Pick<Task, 'title' | 'description' | 'priority' | 'dueDate' | 'tags'>>
   ) => {
     const prev = todos.find((t) => t.id === id)
     if (!prev) return
@@ -96,7 +101,7 @@ export function TodoApp() {
         description: updates.description,
         priority: updates.priority !== 'none' ? updates.priority?.toUpperCase() : 'NONE',
         dueDate: updates.dueDate?.toISOString() ?? null,
-        tag: updates.tag,
+        tagIds: updates.tags?.map((t) => t.id.toString()) ?? [],
       }
 
       await updateTask(id, apiBody as Parameters<typeof updateTask>[1])
@@ -148,6 +153,14 @@ export function TodoApp() {
             {user && (
               <>
                 <Link
+                  to="/tags"
+                  className="bg-glass-bg/60 border-glass-border text-muted-foreground hover:text-foreground hover:bg-glass-bg flex size-8 cursor-pointer items-center justify-center rounded-full border backdrop-blur-xl transition-all duration-200"
+                  aria-label="Manage tags"
+                  title="Manage tags"
+                >
+                  <TagIcon className="size-3.5" />
+                </Link>
+                <Link
                   to="/profile"
                   className="bg-glass-bg/60 border-glass-border text-muted-foreground hover:text-foreground hover:bg-glass-bg flex size-8 cursor-pointer items-center justify-center rounded-full border backdrop-blur-xl transition-all duration-200"
                   aria-label="Profile"
@@ -176,7 +189,7 @@ export function TodoApp() {
       </header>
 
       <GlassPanel>
-        <TodoInput onAdd={handleCreateTask} />
+        <TodoInput onAdd={handleCreateTask} tags={tags} />
 
         {todos.length > 0 && <div className="bg-glass-border/60 mx-4 h-px" />}
 
@@ -188,6 +201,7 @@ export function TodoApp() {
             onDelete={handleDeleteTask}
             onUpdate={handleUpdateTask}
             index={i}
+            tags={tags}
           />
         ))}
 
@@ -209,6 +223,7 @@ export function TodoApp() {
             onDelete={handleDeleteTask}
             onUpdate={handleUpdateTask}
             index={i + incomplete.length}
+            tags={tags}
           />
         ))}
 

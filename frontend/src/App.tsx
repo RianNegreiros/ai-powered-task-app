@@ -4,6 +4,7 @@ import { ThemeProvider } from '@/components/theme-provider'
 import { LiquidBackground } from '@/components/liquid-background'
 import { TodoApp } from '@/components/todo-app'
 import { ProfilePage } from '@/components/profile-page'
+import { TagsPage } from '@/components/tags-page'
 import { LoginForm } from '@/components/login-form'
 import { RegisterForm } from '@/components/register-form'
 import { LandingPage } from '@/components/landing-page'
@@ -37,6 +38,7 @@ function AppContent() {
       <Routes>
         <Route path="/" element={<TodoApp />} />
         <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/tags" element={<TagsPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </main>

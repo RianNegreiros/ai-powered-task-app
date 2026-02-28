@@ -47,17 +47,17 @@ POST   /api/auth/login
 POST   /api/auth/refresh-token
 
 ### tasks
-GET    /api/tasks              # List with pagination & filters
-GET    /api/tasks/:id          # Get single todo
-POST   /api/tasks              # Create todo
-PUT    /api/tasks/:id          # Update todo
-DELETE /api/tasks/:id          # Delete todo
-PATCH  /api/tasks/:id/complete # Toggle completion
+GET    /api/tasks/me              # List with pagination & filters
+GET    /api/tasks/me/:id          # Get single todo
+POST   /api/tasks                 # Create todo
+PUT    /api/tasks/me/:id          # Update todo
+DELETE /api/tasks/me/:id          # Delete todo
+PATCH  /api/tasks/me/:id          # Toggle completion
 
 ### Tags
-GET    /api/tags
-POST   /api/tags
-DELETE /api/tags/:id
+GET    /api/tags/me     # Get all tags created by user
+POST   /api/tags        # Create a tag for the user to use on tasks
+DELETE /api/tags/me/:id # Delete tag
 
 ### AI Reports
 GET    /api/reports/weekly     # Get latest weekly report
