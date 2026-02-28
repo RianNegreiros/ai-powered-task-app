@@ -63,9 +63,9 @@ public class TaskController {
     }
 
     @PatchMapping("/me/{id}")
-    public ResponseEntity<TaskResponse> setTaskCompleted(@PathVariable String id,
+    public ResponseEntity<TaskResponse> toggleTaskCompleted(@PathVariable String id,
             JwtAuthenticationToken token) {
-        TaskResponse reponse = taskService.setTaskCompleted(id, token);
+        TaskResponse reponse = taskService.toggleTaskCompleted(id, token);
         return ResponseEntity.ok(reponse);
     }
 }

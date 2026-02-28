@@ -99,14 +99,14 @@ public class TaskService {
         taskRepository.delete(task);
     }
 
-    public TaskResponse setTaskCompleted(String id, JwtAuthenticationToken token) {
+    public TaskResponse toggleTaskCompleted(String id, JwtAuthenticationToken token) {
         User user = userRepository.findById(Long.parseLong(token.getName())).orElseThrow(
                 () -> new UserNotFoundException("User not found with ID: " + token.getName()));
 
         Task task = taskRepository.findById(Long.parseLong(id))
                 .orElseThrow(() -> new TaskNotFoundException("Task not found with ID: " + id));
 
-        task.setCompleted(true);
+        task.toggleTaskCompleted();
         taskRepository.save(task);
 
         return new TaskResponse(task.getId().toString(), user.getId().toString(), task.getTitle(),

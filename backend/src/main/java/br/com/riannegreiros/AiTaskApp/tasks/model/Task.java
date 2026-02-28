@@ -143,7 +143,7 @@ public class Task {
         this.updatedAt = updatedAt;
     }
 
-    public void setTaskCompleted() {
-        this.completed = true;
+    public void toggleTaskCompleted() {
+        this.completed = !completed;
     }
 }
