@@ -1,6 +1,7 @@
 package br.com.riannegreiros.AiTaskApp.tasks.dto;
 
 import java.time.OffsetDateTime;
+import java.util.List;
 import br.com.riannegreiros.AiTaskApp.tasks.model.Priority;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -14,5 +15,6 @@ public record TaskRequest(
         OffsetDateTime dueDate,
 
         @Size(max = 1000,
-                message = "Description must not exceed 1000 characters") String description) {
+                message = "Description must not exceed 1000 characters") String description,
+        List<String> tagIds) {
 }

@@ -1,12 +1,18 @@
 package br.com.riannegreiros.AiTaskApp.tasks.service;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
 import br.com.riannegreiros.AiTaskApp.auth.model.User;
 import br.com.riannegreiros.AiTaskApp.auth.repository.UserRepository;
+import br.com.riannegreiros.AiTaskApp.infra.exception.TagNotFoundException;
 import br.com.riannegreiros.AiTaskApp.infra.exception.TaskNotFoundException;
 import br.com.riannegreiros.AiTaskApp.infra.exception.UserNotFoundException;
+import br.com.riannegreiros.AiTaskApp.tags.model.Tag;
+import br.com.riannegreiros.AiTaskApp.tags.model.repository.TagRepository;
+import br.com.riannegreiros.AiTaskApp.tasks.dto.TagSummary;
 import br.com.riannegreiros.AiTaskApp.tasks.dto.TaskRequest;
 import br.com.riannegreiros.AiTaskApp.tasks.dto.TaskResponse;
 import br.com.riannegreiros.AiTaskApp.tasks.dto.UpdateTaskRequest;
@@ -17,10 +23,13 @@ import br.com.riannegreiros.AiTaskApp.tasks.repository.TaskRepository;
 public class TaskService {
     private TaskRepository taskRepository;
     private UserRepository userRepository;
+    private TagRepository tagRepository;
 
-    public TaskService(TaskRepository taskRepository, UserRepository userRepository) {
+    public TaskService(TaskRepository taskRepository, UserRepository userRepository,
+            TagRepository tagRepository) {
         this.taskRepository = taskRepository;
         this.userRepository = userRepository;
+        this.tagRepository = tagRepository;
     }
 
     public TaskResponse saveTask(TaskRequest request, JwtAuthenticationToken token) {
@@ -37,10 +46,23 @@ public class TaskService {
         task.setDescription(request.description());
         task.setUser(user);
 
+        if (request.tagIds() != null && !request.tagIds().isEmpty()) {
+            Set<Tag> tags = new HashSet<>();
+
+            for (String tagId : request.tagIds()) {
+                Long longId = Long.parseLong(tagId);
+                Tag tag = tagRepository.findById(longId).orElseThrow(() -> new TagNotFoundException(
+                        "Tag does not belong to user or do not exist"));
+                tags.add(tag);
+            }
+            task.setTags(tags);
+        }
+
         taskRepository.save(task);
 
         return new TaskResponse(task.getId().toString(), user.getId().toString(), task.getTitle(),
                 task.getPriority(), task.getDueDate(), task.isCompleted(), task.getDescription(),
+                task.getTags().stream().map(tag -> new TagSummary(tag.getId(), tag.getName())).toList(),
                 task.getCreatedAt(), task.getUpdatedAt());
     }
 
@@ -51,7 +73,9 @@ public class TaskService {
         return taskRepository.findAllByUserId(user.getId()).stream()
                 .map(task -> new TaskResponse(task.getId().toString(), user.getId().toString(),
                         task.getTitle(), task.getPriority(), task.getDueDate(), task.isCompleted(),
-                        task.getDescription(), task.getCreatedAt(), task.getUpdatedAt()))
+                        task.getDescription(),
+                        task.getTags().stream().map(tag -> new TagSummary(tag.getId(), tag.getName())).toList(),
+                        task.getCreatedAt(), task.getUpdatedAt()))
                 .toList();
     }
 
@@ -64,6 +88,7 @@ public class TaskService {
 
         return new TaskResponse(task.getId().toString(), user.getId().toString(), task.getTitle(),
                 task.getPriority(), task.getDueDate(), task.isCompleted(), task.getDescription(),
+                task.getTags().stream().map(tag -> new TagSummary(tag.getId(), tag.getName())).toList(),
                 task.getCreatedAt(), task.getUpdatedAt());
     }
 
@@ -80,10 +105,25 @@ public class TaskService {
         task.setDueDate(request.dueDate());
         task.setPriority(request.priority());
 
+        if (request.tagIds() != null) {
+            Set<Tag> tags = new HashSet<>();
+
+            if (!request.tagIds().isEmpty()) {
+                for (String tagId : request.tagIds()) {
+                    Long longId = Long.parseLong(tagId);
+                    Tag tag = tagRepository.findById(longId).orElseThrow(() -> new TagNotFoundException(
+                            "Tag does not belong to user or do not exist"));
+                    tags.add(tag);
+                }
+            }
+            task.setTags(tags);
+        }
+
         taskRepository.save(task);
 
         return new TaskResponse(task.getId().toString(), user.getId().toString(), task.getTitle(),
                 task.getPriority(), task.getDueDate(), task.isCompleted(), task.getDescription(),
+                task.getTags().stream().map(tag -> new TagSummary(tag.getId(), tag.getName())).toList(),
                 task.getCreatedAt(), task.getUpdatedAt());
     }
 
@@ -109,6 +149,7 @@ public class TaskService {
 
         return new TaskResponse(task.getId().toString(), user.getId().toString(), task.getTitle(),
                 task.getPriority(), task.getDueDate(), task.isCompleted(), task.getDescription(),
+                task.getTags().stream().map(tag -> new TagSummary(tag.getId(), tag.getName())).toList(),
                 task.getCreatedAt(), task.getUpdatedAt());
     }
 }
