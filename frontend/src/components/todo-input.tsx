@@ -1,5 +1,3 @@
-'use client'
-
 import { useState, useRef, useEffect } from 'react'
 import { Plus, Flag, Calendar, ChevronDown, SlidersHorizontal, Tag, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -52,7 +50,7 @@ export function TodoInput({ onAdd }: TodoInputProps) {
       onAdd(
         text.trim(),
         priority,
-        dueDate ? new Date(dueDate + 'T00:00:00') : null,
+        dueDate ? new Date(dueDate) : null,
         tag.trim() || null
       )
       setText('')
@@ -79,7 +77,7 @@ export function TodoInput({ onAdd }: TodoInputProps) {
           type="submit"
           disabled={!text.trim()}
           className={cn(
-            'flex size-[22px] shrink-0 items-center justify-center rounded-full transition-all duration-300',
+            'ursor-pointer flex size-[22px] shrink-0 items-center justify-center rounded-full transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-50',
             text.trim()
               ? 'bg-primary text-primary-foreground'
               : 'border-primary/40 text-primary/40 border-[1.5px]'
@@ -94,7 +92,7 @@ export function TodoInput({ onAdd }: TodoInputProps) {
           value={text}
           onChange={(e) => setText(e.target.value)}
           placeholder="New task..."
-          className="text-foreground placeholder:text-muted-foreground/50 flex-1 bg-transparent text-[15px] outline-none"
+          className="text-foreground placeholder:text-muted-foreground/50 flex-1 cursor-text bg-transparent text-[15px] outline-none"
         />
 
         {/* Toggle options button */}
