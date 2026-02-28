@@ -1,5 +1,6 @@
 package br.com.riannegreiros.AiTaskApp.tags.Service;
 
+import java.util.List;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
 import br.com.riannegreiros.AiTaskApp.auth.model.User;
@@ -29,5 +30,15 @@ public class TagService {
         tagRepository.save(tag);
 
         return new TagResponse(tag.getId().toString(), tag.getName(), user.getId().toString());
+    }
+
+    public List<TagResponse> listTags(JwtAuthenticationToken token) {
+        User user = userRepository.findById(Long.parseLong(token.getName())).orElseThrow(
+                () -> new UserNotFoundException("User not found with ID: " + token.getName()));
+
+        return tagRepository.findAllByUserId(user.getId()).stream()
+                .map(tag -> new TagResponse(tag.getId().toString(), tag.getName(),
+                        tag.getUser().getId().toString()))
+                .toList();
     }
 }
