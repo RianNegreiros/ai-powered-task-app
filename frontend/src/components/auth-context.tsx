@@ -106,10 +106,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null)
     localStorage.removeItem('token')
     localStorage.removeItem('refreshToken')
-    fetch(`${API_BASE}/api/auth/logout`, {
-      method: 'POST',
-      credentials: 'include',
-    }).catch(() => {})
   }, [])
 
   useEffect(() => {
