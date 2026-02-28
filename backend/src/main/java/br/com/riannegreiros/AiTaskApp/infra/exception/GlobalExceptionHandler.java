@@ -10,16 +10,23 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler(TagNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleTagNotFound(TagNotFoundException ex) {
+        ErrorResponse error = new ErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST.value(),
+                LocalDateTime.now());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+
     @ExceptionHandler(TaskNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleTaskNotFound(TaskNotFoundException ex) {
-        ErrorResponse error = new ErrorResponse(ex.getMessage(), HttpStatus.CONFLICT.value(),
+        ErrorResponse error = new ErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST.value(),
                 LocalDateTime.now());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 
     @ExceptionHandler(UserNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleUserNotFound(UserNotFoundException ex) {
-        ErrorResponse error = new ErrorResponse(ex.getMessage(), HttpStatus.CONFLICT.value(),
+        ErrorResponse error = new ErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST.value(),
                 LocalDateTime.now());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }

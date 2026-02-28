@@ -5,7 +5,7 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.stereotype.Service;
 import br.com.riannegreiros.AiTaskApp.auth.model.User;
 import br.com.riannegreiros.AiTaskApp.auth.repository.UserRepository;
-import br.com.riannegreiros.AiTaskApp.infra.exception.TaskNotFoundException;
+import br.com.riannegreiros.AiTaskApp.infra.exception.TagNotFoundException;
 import br.com.riannegreiros.AiTaskApp.infra.exception.UserNotFoundException;
 import br.com.riannegreiros.AiTaskApp.tags.model.Tag;
 import br.com.riannegreiros.AiTaskApp.tags.model.dto.TagRequest;
@@ -48,7 +48,7 @@ public class TagService {
                 () -> new UserNotFoundException("User not found with ID: " + token.getName()));
 
         Tag tag = tagRepository.findById(Long.parseLong(id))
-                .orElseThrow(() -> new TaskNotFoundException("Tag not found with ID: " + id));
+                .orElseThrow(() -> new TagNotFoundException("Tag not found with ID: " + id));
 
         tagRepository.delete(tag);
     }
