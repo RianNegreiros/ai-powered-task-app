@@ -10,10 +10,14 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar } from '@/components/ui/calendar'
 import { cn } from '@/lib/utils'
 import { priorityOptions } from './priority-config'
+import type { Tag as TagEntity } from '@/lib/api-tags'
 
 export type Priority = 'low' | 'medium' | 'high' | 'critical' | 'none'
 
-export type Tag = string | null
+export interface TaskTag {
+  id: number
+  name: string
+}
 
 export interface Task {
   id: string
@@ -23,7 +27,7 @@ export interface Task {
   createdAt: Date
   priority: Priority
   dueDate: Date | null
-  tag: Tag
+  tags: TaskTag[]
 }
 
 const priorityConfig: Record<
@@ -87,12 +91,13 @@ interface TodoItemProps {
   onDelete: (id: string) => void
   onUpdate: (
     id: string,
-    updates: Partial<Pick<Task, 'title' | 'description' | 'priority' | 'dueDate' | 'tag'>>
+    updates: Partial<Pick<Task, 'title' | 'description' | 'priority' | 'dueDate' | 'tags'>>
   ) => void
   index: number
+  tags: TagEntity[]
 }
 
-export function TodoItem({ todo, onToggle, onDelete, onUpdate, index }: TodoItemProps) {
+export function TodoItem({ todo, onToggle, onDelete, onUpdate, index, tags }: TodoItemProps) {
   const [isDeleting, setIsDeleting] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
 
@@ -103,7 +108,9 @@ export function TodoItem({ todo, onToggle, onDelete, onUpdate, index }: TodoItem
   const [editDueDate, setEditDueDate] = useState<Date | undefined>(
     todo.dueDate instanceof Date && !isNaN(todo.dueDate.getTime()) ? todo.dueDate : undefined
   )
-  const [editTag, setEditTag] = useState(todo.tag ?? '')
+  const [editTagIds, setEditTagIds] = useState<string[]>(
+    todo.tags.map((t) => t.id.toString())
+  )
 
   const editTitleRef = useRef<HTMLInputElement>(null)
 
@@ -126,7 +133,7 @@ export function TodoItem({ todo, onToggle, onDelete, onUpdate, index }: TodoItem
     setEditDueDate(
       todo.dueDate instanceof Date && !isNaN(todo.dueDate.getTime()) ? todo.dueDate : undefined
     )
-    setEditTag(todo.tag ?? '')
+    setEditTagIds(todo.tags.map((t) => t.id.toString()))
     setIsEditing(true)
   }
 
@@ -136,12 +143,13 @@ export function TodoItem({ todo, onToggle, onDelete, onUpdate, index }: TodoItem
 
   const handleSaveEdit = () => {
     if (!editTitle.trim()) return
+    const selectedTags = tags.filter((t) => editTagIds.includes(t.id)).map((t) => ({ id: parseInt(t.id), name: t.name }))
     onUpdate(todo.id, {
       title: editTitle.trim(),
       description: editDescription.trim() || null,
       priority: editPriority,
       dueDate: editDueDate || null,
-      tag: editTag.trim() || null,
+      tags: selectedTags,
     })
     setIsEditing(false)
   }
@@ -205,22 +213,44 @@ export function TodoItem({ todo, onToggle, onDelete, onUpdate, index }: TodoItem
 
         {/* Options row */}
         <div className="flex flex-wrap items-center gap-2.5 pt-0.5">
-          {/* Tag input */}
-          <div className="bg-glass-bg/70 border-glass-border/60 hover:border-glass-border relative flex items-center gap-2 rounded-full border px-3 py-2 backdrop-blur-xl transition-colors">
-            <Tag
-              className={cn(
-                'size-3.5 shrink-0',
-                editTag.trim() ? 'text-foreground/80' : 'text-muted-foreground/50'
-              )}
-            />
-            <input
-              type="text"
-              value={editTag}
-              onChange={(e) => setEditTag(e.target.value)}
-              placeholder="Tag"
-              className="text-foreground placeholder:text-muted-foreground/50 w-20 bg-transparent text-xs font-medium outline-none"
-            />
-          </div>
+          {/* Tag selector */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <button
+                type="button"
+                className={cn(
+                  'flex items-center gap-2 rounded-full px-3 py-2 text-xs font-semibold transition-all duration-200',
+                  'bg-glass-bg/70 border-glass-border/60 hover:border-glass-border hover:bg-glass-bg border backdrop-blur-xl',
+                  editTagIds.length > 0 ? 'text-foreground/80' : 'text-muted-foreground/50'
+                )}
+              >
+                <Tag className="size-3.5" />
+                {editTagIds.length > 0 ? `${editTagIds.length} tag${editTagIds.length > 1 ? 's' : ''}` : 'Tags'}
+              </button>
+            </PopoverTrigger>
+            <PopoverContent align="start" className="w-52 p-2">
+              <div className="max-h-60 space-y-1 overflow-y-auto">
+                {tags.map((t) => (
+                  <button
+                    key={t.id}
+                    type="button"
+                    onClick={() => setEditTagIds(prev => 
+                      prev.includes(t.id) ? prev.filter(id => id !== t.id) : [...prev, t.id]
+                    )}
+                    className="hover:bg-accent flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors"
+                  >
+                    <div className={cn(
+                      "flex size-4 items-center justify-center rounded border",
+                      editTagIds.includes(t.id) ? "bg-primary border-primary" : "border-input"
+                    )}>
+                      {editTagIds.includes(t.id) && <Check className="size-3 text-primary-foreground" />}
+                    </div>
+                    <span className="flex-1 text-left">{t.name}</span>
+                  </button>
+                ))}
+              </div>
+            </PopoverContent>
+          </Popover>
 
           {/* Priority picker */}
           <DropdownMenu>
@@ -393,14 +423,14 @@ export function TodoItem({ todo, onToggle, onDelete, onUpdate, index }: TodoItem
         )}
 
         {/* Meta row: tag + priority badge + due date */}
-        {!todo.completed && (todo.priority !== 'none' || due || todo.tag) && (
+        {!todo.completed && (todo.priority !== 'none' || due || todo.tags.length > 0) && (
           <div className="mt-0.5 flex flex-wrap items-center gap-2">
-            {todo.tag && (
-              <span className="bg-foreground/8 text-foreground/80 dark:bg-foreground/10 dark:text-foreground/80 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium">
+            {todo.tags.map((tag) => (
+              <span key={tag.id} className="bg-foreground/8 text-foreground/80 dark:bg-foreground/10 dark:text-foreground/80 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium">
                 <Tag className="size-3" aria-hidden="true" />
-                <span>{todo.tag}</span>
+                <span>{tag.name}</span>
               </span>
-            )}
+            ))}
             {todo.priority !== 'none' && (
               <span
                 className={cn(
