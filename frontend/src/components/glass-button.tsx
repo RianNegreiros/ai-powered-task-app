@@ -26,6 +26,8 @@ export function GlassButton({
           'shadow-[0_2px_16px_var(--primary)/0.3,inset_0_1px_0_oklch(1_0_0/0.2)]',
           'hover:shadow-[0_4px_24px_var(--primary)/0.4,inset_0_1px_0_oklch(1_0_0/0.2)]',
           'hover:brightness-110',
+          'dark:shadow-[0_2px_20px_var(--primary)/0.25,0_0_40px_var(--primary)/0.1,inset_0_1px_0_oklch(1_0_0/0.15)]',
+          'dark:hover:shadow-[0_4px_28px_var(--primary)/0.35,0_0_50px_var(--primary)/0.15,inset_0_1px_0_oklch(1_0_0/0.15)]',
         ],
         variant === 'ghost' && [
           'bg-glass-bg/40 text-foreground backdrop-blur-xl',

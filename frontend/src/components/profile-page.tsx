@@ -63,7 +63,7 @@ export function ProfilePage() {
               <span className="text-muted-foreground text-sm">Theme</span>
               <button
                 onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                className="bg-glass-bg/60 border-glass-border text-muted-foreground hover:text-foreground hover:bg-glass-bg flex items-center gap-2 rounded-full border px-4 py-2 text-sm backdrop-blur-xl transition-all duration-200"
+                className="bg-glass-bg/60 border-glass-border text-muted-foreground hover:text-foreground hover:bg-glass-bg dark:hover:shadow-[0_0_12px_var(--primary)/0.15] flex items-center gap-2 rounded-full border px-4 py-2 text-sm backdrop-blur-xl transition-all duration-200"
               >
                 {theme === 'dark' ? (
                   <>

@@ -31,7 +31,7 @@ export const GlassInput = forwardRef<HTMLInputElement, GlassInputProps>(
             'bg-glass-bg/60 backdrop-blur-xl',
             'border',
             isFocused
-              ? 'border-primary/50 shadow-[0_0_0_3px_var(--ring),inset_0_1px_0_var(--glass-highlight)]'
+              ? 'border-primary/50 shadow-[0_0_0_3px_var(--ring),inset_0_1px_0_var(--glass-highlight)] dark:shadow-[0_0_0_3px_var(--ring),0_0_16px_var(--primary)/0.1,inset_0_1px_0_var(--glass-highlight)]'
               : 'border-glass-border shadow-[inset_0_1px_0_var(--glass-highlight)]',
             error && 'border-destructive/50 shadow-[0_0_0_3px_oklch(0.6_0.22_25/0.15)]'
           )}
