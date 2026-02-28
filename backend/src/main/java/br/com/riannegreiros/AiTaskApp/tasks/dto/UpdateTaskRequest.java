@@ -1,0 +1,19 @@
+package br.com.riannegreiros.AiTaskApp.tasks.dto;
+
+import java.time.OffsetDateTime;
+import br.com.riannegreiros.AiTaskApp.tasks.model.Priority;
+import jakarta.validation.constraints.Size;
+
+public record UpdateTaskRequest(
+        @Size(min = 1, max = 255,
+                message = "Title must be between 1 and 255 characters") String title,
+
+        Priority priority,
+
+        OffsetDateTime dueDate,
+
+        @Size(max = 50, message = "Tag must not exceed 50 characters") String tag,
+
+        @Size(max = 1000,
+                message = "Description must not exceed 1000 characters") String description) {
+}
