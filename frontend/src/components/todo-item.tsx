@@ -168,7 +168,7 @@ export function TodoItem({ todo, onToggle, onDelete, onUpdate, index }: TodoItem
     return (
       <div
         className={cn(
-          'animate-slide-up flex flex-col gap-3 px-4 py-3.5',
+          'animate-slide-up flex flex-col gap-4 px-5 py-5',
           'border-glass-border/60 border-b last:border-b-0',
           'bg-primary/5 dark:bg-primary/8',
           'shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)]'
@@ -184,8 +184,8 @@ export function TodoItem({ todo, onToggle, onDelete, onUpdate, index }: TodoItem
           onChange={(e) => setEditTitle(e.target.value)}
           placeholder="Task title..."
           className={cn(
-            'text-foreground placeholder:text-muted-foreground/40 w-full bg-transparent text-[15px] leading-relaxed font-medium outline-none',
-            'focus:placeholder:text-muted-foreground/60 transition-colors'
+            'text-foreground placeholder:text-muted-foreground/60 w-full bg-transparent text-base leading-relaxed font-semibold outline-none',
+            'focus:placeholder:text-muted-foreground/70 transition-colors'
           )}
         />
 
@@ -196,21 +196,21 @@ export function TodoItem({ todo, onToggle, onDelete, onUpdate, index }: TodoItem
           placeholder="Add a description..."
           rows={2}
           className={cn(
-            'text-foreground placeholder:text-muted-foreground/40 w-full resize-none rounded-lg bg-transparent text-[13px] leading-relaxed outline-none',
-            'bg-glass-bg/50 border-glass-border/60 border px-3 py-2',
+            'text-foreground placeholder:text-muted-foreground/50 w-full resize-none rounded-xl bg-transparent text-sm leading-relaxed outline-none',
+            'bg-glass-bg/50 border-glass-border/60 border px-4 py-3',
             'focus:border-primary/40 focus:bg-glass-bg/70 transition-all duration-200',
             'dark:focus:shadow-[0_0_0_3px_var(--primary)/0.1]'
           )}
         />
 
         {/* Options row */}
-        <div className="flex flex-wrap items-center gap-2 pt-0.5">
+        <div className="flex flex-wrap items-center gap-2.5 pt-0.5">
           {/* Tag input */}
-          <div className="bg-glass-bg/70 border-glass-border/60 hover:border-glass-border relative flex items-center gap-1.5 rounded-full border px-2.5 py-1.5 backdrop-blur-xl transition-colors">
+          <div className="bg-glass-bg/70 border-glass-border/60 hover:border-glass-border relative flex items-center gap-2 rounded-full border px-3 py-2 backdrop-blur-xl transition-colors">
             <Tag
               className={cn(
-                'size-3 shrink-0',
-                editTag.trim() ? 'text-foreground/70' : 'text-muted-foreground/40'
+                'size-3.5 shrink-0',
+                editTag.trim() ? 'text-foreground/80' : 'text-muted-foreground/50'
               )}
             />
             <input
@@ -218,7 +218,7 @@ export function TodoItem({ todo, onToggle, onDelete, onUpdate, index }: TodoItem
               value={editTag}
               onChange={(e) => setEditTag(e.target.value)}
               placeholder="Tag"
-              className="text-foreground placeholder:text-muted-foreground/40 w-20 bg-transparent text-[11px] font-medium outline-none"
+              className="text-foreground placeholder:text-muted-foreground/50 w-20 bg-transparent text-xs font-medium outline-none"
             />
           </div>
 
@@ -228,30 +228,28 @@ export function TodoItem({ todo, onToggle, onDelete, onUpdate, index }: TodoItem
               <button
                 type="button"
                 className={cn(
-                  'flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-[11px] font-medium transition-all duration-200',
+                  'flex items-center gap-2 rounded-full px-3 py-2 text-xs font-semibold transition-all duration-200',
                   'bg-glass-bg/70 border-glass-border/60 hover:border-glass-border hover:bg-glass-bg border backdrop-blur-xl',
                   currentEditPriority.color
                 )}
               >
-                <Flag className="size-3" />
+                <Flag className="size-3.5" />
                 {currentEditPriority.label}
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-36">
+            <DropdownMenuContent align="start" className="w-40">
               {priorityOptions.map((opt) => (
                 <DropdownMenuItem
                   key={opt.value}
                   onClick={() => setEditPriority(opt.value)}
                   className={cn(
-                    'flex cursor-pointer items-center gap-2.5',
-                    editPriority === opt.value ? opt.color : 'text-foreground/70'
+                    'flex cursor-pointer items-center gap-2.5 text-sm',
+                    editPriority === opt.value ? opt.color : 'text-foreground/80'
                   )}
                 >
-                  <span className={cn('size-2 shrink-0 rounded-full', opt.dot)} />
+                  <span className={cn('size-2.5 shrink-0 rounded-full', opt.dot)} />
                   {opt.label}
-                  {editPriority === opt.value && (
-                    <Check className="text-primary ml-auto size-3.5" />
-                  )}
+                  {editPriority === opt.value && <Check className="text-primary ml-auto size-4" />}
                 </DropdownMenuItem>
               ))}
             </DropdownMenuContent>
@@ -263,12 +261,12 @@ export function TodoItem({ todo, onToggle, onDelete, onUpdate, index }: TodoItem
               <button
                 type="button"
                 className={cn(
-                  'flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-[11px] font-medium transition-all duration-200',
+                  'flex items-center gap-2 rounded-full px-3 py-2 text-xs font-semibold transition-all duration-200',
                   'bg-glass-bg/70 border-glass-border/60 hover:border-glass-border hover:bg-glass-bg border backdrop-blur-xl',
-                  editDueDate ? 'text-accent dark:text-accent' : 'text-muted-foreground/60'
+                  editDueDate ? 'text-accent dark:text-accent' : 'text-muted-foreground/70'
                 )}
               >
-                <CalendarIcon className="size-3" />
+                <CalendarIcon className="size-3.5" />
                 {editDueDate
                   ? editDueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
                   : 'Due date'}
@@ -286,13 +284,13 @@ export function TodoItem({ todo, onToggle, onDelete, onUpdate, index }: TodoItem
         </div>
 
         {/* Save / Cancel row */}
-        <div className="flex items-center justify-end gap-2 pt-1">
+        <div className="flex items-center justify-end gap-3 pt-1">
           <button
             type="button"
             onClick={handleCancelEdit}
             className={cn(
-              'flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[12px] font-medium transition-all duration-200',
-              'text-muted-foreground hover:text-foreground hover:bg-glass-bg/70'
+              'flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium transition-all duration-200',
+              'text-foreground/70 hover:text-foreground hover:bg-glass-bg/70'
             )}
           >
             Cancel
@@ -302,13 +300,13 @@ export function TodoItem({ todo, onToggle, onDelete, onUpdate, index }: TodoItem
             onClick={handleSaveEdit}
             disabled={!editTitle.trim()}
             className={cn(
-              'flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[12px] font-medium transition-all duration-200',
+              'flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold transition-all duration-200',
               'bg-primary text-primary-foreground shadow-sm',
               'hover:brightness-110 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:brightness-100',
               'dark:shadow-[0_2px_16px_var(--primary)/0.25]'
             )}
           >
-            <Check className="size-3.5" />
+            <Check className="size-4" />
             Save
           </button>
         </div>
@@ -320,9 +318,10 @@ export function TodoItem({ todo, onToggle, onDelete, onUpdate, index }: TodoItem
   return (
     <div
       className={cn(
-        'group animate-slide-up flex items-start gap-3 px-4 py-3',
+        'group animate-slide-up flex items-start gap-4 px-5 py-4',
         'transition-all duration-300 ease-out',
         'border-glass-border/50 border-b last:border-b-0',
+        'hover:bg-foreground/2 dark:hover:bg-foreground/3',
         isDeleting && '-translate-x-2 scale-95 opacity-0'
       )}
       style={{ animationDelay: `${index * 40}ms` }}
@@ -331,16 +330,16 @@ export function TodoItem({ todo, onToggle, onDelete, onUpdate, index }: TodoItem
       <button
         onClick={() => onToggle(todo.id)}
         className={cn(
-          'relative mt-0.5 flex size-[22px] shrink-0 cursor-pointer items-center justify-center rounded-full transition-all duration-300',
+          'relative mt-1 flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-full transition-all duration-300',
           todo.completed
             ? 'bg-primary dark:shadow-[0_0_8px_var(--primary)/0.3]'
-            : cn('hover:border-primary/50 border-[1.5px]', pCfg.ringColor)
+            : cn('hover:border-primary/50 border-2', pCfg.ringColor)
         )}
         aria-label={todo.completed ? 'Mark as incomplete' : 'Mark as complete'}
       >
         {todo.completed && (
           <svg
-            className="text-primary-foreground animate-check-pop size-3"
+            className="text-primary-foreground animate-check-pop size-3.5"
             viewBox="0 0 16 16"
             fill="none"
             aria-hidden="true"
@@ -358,7 +357,7 @@ export function TodoItem({ todo, onToggle, onDelete, onUpdate, index }: TodoItem
 
       {/* Content */}
       <div
-        className="flex min-w-0 flex-1 cursor-pointer flex-col gap-1"
+        className="flex min-w-0 flex-1 cursor-pointer flex-col gap-1.5"
         onClick={!todo.completed ? handleStartEdit : undefined}
         role={!todo.completed ? 'button' : undefined}
         tabIndex={!todo.completed ? 0 : undefined}
@@ -376,9 +375,9 @@ export function TodoItem({ todo, onToggle, onDelete, onUpdate, index }: TodoItem
       >
         <span
           className={cn(
-            'text-[15px] leading-relaxed break-words transition-all duration-300',
+            'text-base leading-relaxed font-medium wrap-break-word transition-all duration-300',
             todo.completed
-              ? 'text-muted-foreground/60 decoration-muted-foreground/30 line-through'
+              ? 'text-muted-foreground/50 decoration-muted-foreground/30 line-through'
               : 'text-foreground'
           )}
         >
@@ -387,45 +386,45 @@ export function TodoItem({ todo, onToggle, onDelete, onUpdate, index }: TodoItem
 
         {/* Description preview */}
         {todo.description && !todo.completed && (
-          <span className="text-muted-foreground/50 dark:text-muted-foreground/40 flex items-start gap-1.5 text-[12px] leading-relaxed">
-            <FileText className="mt-0.5 size-3 shrink-0" aria-hidden="true" />
+          <span className="text-muted-foreground dark:text-muted-foreground/70 flex items-start gap-1.5 text-[13px] leading-relaxed">
+            <FileText className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
             <span className="line-clamp-2">{todo.description}</span>
           </span>
         )}
 
         {/* Meta row: tag + priority badge + due date */}
         {!todo.completed && (todo.priority !== 'none' || due || todo.tag) && (
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="mt-0.5 flex flex-wrap items-center gap-2">
             {todo.tag && (
-              <span className="bg-foreground/5 text-foreground/60 dark:bg-foreground/8 dark:text-foreground/70 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium">
-                <Tag className="size-2.5" aria-hidden="true" />
+              <span className="bg-foreground/8 text-foreground/80 dark:bg-foreground/10 dark:text-foreground/80 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium">
+                <Tag className="size-3" aria-hidden="true" />
                 <span>{todo.tag}</span>
               </span>
             )}
             {todo.priority !== 'none' && (
               <span
                 className={cn(
-                  'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium',
+                  'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold',
                   pCfg.bgColor,
                   pCfg.color
                 )}
               >
-                <Flag className="size-2.5" aria-hidden="true" />
+                <Flag className="size-3" aria-hidden="true" />
                 <span>{pCfg.label}</span>
               </span>
             )}
             {due && (
               <span
                 className={cn(
-                  'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium',
+                  'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold',
                   due.isOverdue
-                    ? 'bg-red-500/10 text-red-500 dark:bg-red-400/15 dark:text-red-400'
+                    ? 'bg-red-500/15 text-red-600 dark:bg-red-400/20 dark:text-red-400'
                     : due.isSoon
-                      ? 'bg-amber-500/10 text-amber-500 dark:bg-amber-400/15 dark:text-amber-400'
-                      : 'bg-glass-bg text-muted-foreground/70'
+                      ? 'bg-amber-500/15 text-amber-600 dark:bg-amber-400/20 dark:text-amber-400'
+                      : 'bg-glass-bg text-muted-foreground'
                 )}
               >
-                <CalendarIcon className="size-2.5" aria-hidden="true" />
+                <CalendarIcon className="size-3" aria-hidden="true" />
                 <span>{due.label}</span>
               </span>
             )}
@@ -434,34 +433,34 @@ export function TodoItem({ todo, onToggle, onDelete, onUpdate, index }: TodoItem
       </div>
 
       {/* Actions */}
-      <div className="mt-0.5 flex shrink-0 items-center gap-0.5">
+      <div className="mt-1 flex shrink-0 items-center gap-1">
         {/* Edit button */}
         {!todo.completed && (
           <button
             onClick={handleStartEdit}
             className={cn(
-              'flex size-7 cursor-pointer items-center justify-center rounded-full transition-all duration-200',
+              'flex size-8 cursor-pointer items-center justify-center rounded-full transition-all duration-200',
               'opacity-0 group-hover:opacity-100 focus:opacity-100',
-              'text-muted-foreground/50 hover:text-primary hover:bg-primary/10',
+              'text-muted-foreground hover:text-primary hover:bg-primary/10',
               'focus:ring-primary/40 focus:ring-2 focus:outline-none'
             )}
             aria-label={`Edit task: ${todo.title}`}
           >
-            <Pencil className="size-3.5" aria-hidden="true" />
+            <Pencil className="size-4" aria-hidden="true" />
           </button>
         )}
         {/* Delete button */}
         <button
           onClick={handleDelete}
           className={cn(
-            'flex size-7 cursor-pointer items-center justify-center rounded-full transition-all duration-200',
+            'flex size-8 cursor-pointer items-center justify-center rounded-full transition-all duration-200',
             'opacity-0 group-hover:opacity-100 focus:opacity-100',
-            'text-muted-foreground/50 hover:text-destructive hover:bg-destructive/10',
+            'text-muted-foreground hover:text-destructive hover:bg-destructive/10',
             'focus:ring-destructive/40 focus:ring-2 focus:outline-none'
           )}
           aria-label={`Delete todo: ${todo.title}`}
         >
-          <X className="size-4" aria-hidden="true" />
+          <X className="size-4.5" aria-hidden="true" />
         </button>
       </div>
     </div>
