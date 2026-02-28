@@ -48,10 +48,10 @@ public class TaskController {
         return ResponseEntity.ok(task);
     }
 
-    @PutMapping("/me")
-    public ResponseEntity<TaskResponse> updateTask(@Valid @RequestBody UpdateTaskRequest request,
-            JwtAuthenticationToken token) {
-        TaskResponse task = taskService.updateTask(request, token);
+    @PutMapping("/me/{id}")
+    public ResponseEntity<TaskResponse> updateTask(@PathVariable String id,
+            @Valid @RequestBody UpdateTaskRequest request, JwtAuthenticationToken token) {
+        TaskResponse task = taskService.updateTask(id, request, token);
         return ResponseEntity.ok(task);
     }
 

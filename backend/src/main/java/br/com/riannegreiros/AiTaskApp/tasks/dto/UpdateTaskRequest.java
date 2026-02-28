@@ -2,10 +2,9 @@ package br.com.riannegreiros.AiTaskApp.tasks.dto;
 
 import java.time.OffsetDateTime;
 import br.com.riannegreiros.AiTaskApp.tasks.model.Priority;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-public record UpdateTaskRequest(@NotBlank(message = "Id is required") String id,
+public record UpdateTaskRequest(
         @Size(min = 1, max = 255,
                 message = "Title must be between 1 and 255 characters") String title,
 

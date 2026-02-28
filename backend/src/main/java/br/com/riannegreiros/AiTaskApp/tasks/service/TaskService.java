@@ -69,12 +69,13 @@ public class TaskService {
                 task.getDescription(), task.getCreatedAt(), task.getUpdatedAt());
     }
 
-    public TaskResponse updateTask(UpdateTaskRequest request, JwtAuthenticationToken token) {
+    public TaskResponse updateTask(String id, UpdateTaskRequest request,
+            JwtAuthenticationToken token) {
         User user = userRepository.findById(Long.parseLong(token.getName())).orElseThrow(
                 () -> new UserNotFoundException("User not found with ID: " + token.getName()));
 
-        Task task = taskRepository.findById(Long.parseLong(request.id())).orElseThrow(
-                () -> new TaskNotFoundException("Task not found with ID: " + request.id()));
+        Task task = taskRepository.findById(Long.parseLong(id))
+                .orElseThrow(() -> new TaskNotFoundException("Task not found with ID: " + id));
 
         task.setTitle(request.title());
         task.setDescription(request.description());
