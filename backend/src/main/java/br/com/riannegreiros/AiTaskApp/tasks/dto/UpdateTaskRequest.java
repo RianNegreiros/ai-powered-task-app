@@ -12,8 +12,6 @@ public record UpdateTaskRequest(
 
         OffsetDateTime dueDate,
 
-        @Size(max = 50, message = "Tag must not exceed 50 characters") String tag,
-
         @Size(max = 1000,
                 message = "Description must not exceed 1000 characters") String description) {
 }

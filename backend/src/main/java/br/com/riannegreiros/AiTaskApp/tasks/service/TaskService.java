@@ -34,15 +34,14 @@ public class TaskService {
         task.setTitle(request.title());
         task.setPriority(request.priority());
         task.setDueDate(request.dueDate());
-        task.setTag(request.tag());
         task.setDescription(request.description());
         task.setUser(user);
 
         taskRepository.save(task);
 
         return new TaskResponse(task.getId().toString(), user.getId().toString(), task.getTitle(),
-                task.getPriority(), task.getDueDate(), task.isCompleted(), task.getTag(),
-                task.getDescription(), task.getCreatedAt(), task.getUpdatedAt());
+                task.getPriority(), task.getDueDate(), task.isCompleted(), task.getDescription(),
+                task.getCreatedAt(), task.getUpdatedAt());
     }
 
     public List<TaskResponse> listAllUserTasks(JwtAuthenticationToken token) {
@@ -52,8 +51,7 @@ public class TaskService {
         return taskRepository.findAllByUserId(user.getId()).stream()
                 .map(task -> new TaskResponse(task.getId().toString(), user.getId().toString(),
                         task.getTitle(), task.getPriority(), task.getDueDate(), task.isCompleted(),
-                        task.getTag(), task.getDescription(), task.getCreatedAt(),
-                        task.getUpdatedAt()))
+                        task.getDescription(), task.getCreatedAt(), task.getUpdatedAt()))
                 .toList();
     }
 
@@ -65,8 +63,8 @@ public class TaskService {
                 .orElseThrow(() -> new TaskNotFoundException("Task not found with ID: " + taskId));
 
         return new TaskResponse(task.getId().toString(), user.getId().toString(), task.getTitle(),
-                task.getPriority(), task.getDueDate(), task.isCompleted(), task.getTag(),
-                task.getDescription(), task.getCreatedAt(), task.getUpdatedAt());
+                task.getPriority(), task.getDueDate(), task.isCompleted(), task.getDescription(),
+                task.getCreatedAt(), task.getUpdatedAt());
     }
 
     public TaskResponse updateTask(String id, UpdateTaskRequest request,
@@ -81,13 +79,12 @@ public class TaskService {
         task.setDescription(request.description());
         task.setDueDate(request.dueDate());
         task.setPriority(request.priority());
-        task.setTag(request.tag());
 
         taskRepository.save(task);
 
         return new TaskResponse(task.getId().toString(), user.getId().toString(), task.getTitle(),
-                task.getPriority(), task.getDueDate(), task.isCompleted(), task.getTag(),
-                task.getDescription(), task.getCreatedAt(), task.getUpdatedAt());
+                task.getPriority(), task.getDueDate(), task.isCompleted(), task.getDescription(),
+                task.getCreatedAt(), task.getUpdatedAt());
     }
 
     public void deleteTask(String id, JwtAuthenticationToken token) {
@@ -111,7 +108,7 @@ public class TaskService {
         taskRepository.save(task);
 
         return new TaskResponse(task.getId().toString(), user.getId().toString(), task.getTitle(),
-                task.getPriority(), task.getDueDate(), task.isCompleted(), task.getTag(),
-                task.getDescription(), task.getCreatedAt(), task.getUpdatedAt());
+                task.getPriority(), task.getDueDate(), task.isCompleted(), task.getDescription(),
+                task.getCreatedAt(), task.getUpdatedAt());
     }
 }
