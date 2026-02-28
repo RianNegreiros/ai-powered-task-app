@@ -3,7 +3,9 @@ package br.com.riannegreiros.AiTaskApp.tags.controller;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -35,5 +37,11 @@ public class TagController {
     public ResponseEntity<List<TagResponse>> getUserTags(JwtAuthenticationToken token) {
         List<TagResponse> tags = tagService.listTags(token);
         return ResponseEntity.ok(tags);
+    }
+
+    @DeleteMapping("/me/{id}")
+    public ResponseEntity<String> deleteTag(@PathVariable String id, JwtAuthenticationToken token) {
+        tagService.deleteTag(id, token);
+        return ResponseEntity.ok("Tag with ID: " + id + " deleted successfully.");
     }
 }
