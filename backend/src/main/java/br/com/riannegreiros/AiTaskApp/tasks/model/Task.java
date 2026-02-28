@@ -1,6 +1,7 @@
 package br.com.riannegreiros.AiTaskApp.tasks.model;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import br.com.riannegreiros.AiTaskApp.auth.model.User;
@@ -30,7 +31,7 @@ public class Task {
     private Priority priority;
 
     @Column(name = "due_date")
-    private LocalDateTime dueDate;
+    private OffsetDateTime dueDate;
 
     private boolean completed = false;
 
@@ -51,7 +52,7 @@ public class Task {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    public Task(String title, Priority priority, LocalDateTime dueDate, User user, String tag,
+    public Task(String title, Priority priority, OffsetDateTime dueDate, User user, String tag,
             String description) {
         this.title = title;
         this.priority = priority;
@@ -87,11 +88,11 @@ public class Task {
         this.priority = priority;
     }
 
-    public LocalDateTime getDueDate() {
+    public OffsetDateTime getDueDate() {
         return dueDate;
     }
 
-    public void setDueDate(LocalDateTime dueDate) {
+    public void setDueDate(OffsetDateTime dueDate) {
         this.dueDate = dueDate;
     }
 

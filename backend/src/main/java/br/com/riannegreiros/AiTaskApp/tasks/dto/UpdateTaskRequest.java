@@ -1,8 +1,7 @@
 package br.com.riannegreiros.AiTaskApp.tasks.dto;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import br.com.riannegreiros.AiTaskApp.tasks.model.Priority;
-import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
@@ -12,7 +11,7 @@ public record UpdateTaskRequest(@NotBlank(message = "Id is required") String id,
 
         Priority priority,
 
-        @Future(message = "Due date must be in the future") LocalDateTime dueDate,
+        OffsetDateTime dueDate,
 
         @Size(max = 50, message = "Tag must not exceed 50 characters") String tag,
 
