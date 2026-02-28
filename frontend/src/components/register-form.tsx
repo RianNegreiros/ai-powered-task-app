@@ -1,5 +1,3 @@
-'use client'
-
 import { useState, type FormEvent } from 'react'
 import { UserPlus, Check, X } from 'lucide-react'
 import { GlassPanel } from './glass-panel'
