@@ -9,6 +9,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Calendar } from '@/components/ui/calendar'
 import { cn } from '@/lib/utils'
+import { priorityOptions } from './priority-config'
 
 export type Priority = 'low' | 'medium' | 'high' | 'critical' | 'none'
 
@@ -80,19 +81,14 @@ function formatDueDate(date: Date): { label: string; isOverdue: boolean; isSoon:
   }
 }
 
-const priorityOptions: { value: Priority; label: string; color: string; dot: string }[] = [
-  { value: 'none', label: 'None', color: 'text-muted-foreground/50', dot: 'bg-muted-foreground/30' },
-  { value: 'low', label: 'Low', color: 'text-sky-500 dark:text-sky-400', dot: 'bg-sky-500 dark:bg-sky-400' },
-  { value: 'medium', label: 'Medium', color: 'text-amber-500 dark:text-amber-400', dot: 'bg-amber-500 dark:bg-amber-400' },
-  { value: 'high', label: 'High', color: 'text-red-500 dark:text-red-400', dot: 'bg-red-500 dark:bg-red-400' },
-  { value: 'critical', label: 'Critical', color: 'text-rose-600 dark:text-rose-400', dot: 'bg-rose-600 dark:bg-rose-400' },
-]
-
 interface TodoItemProps {
   todo: Task
   onToggle: (id: string) => void
   onDelete: (id: string) => void
-  onUpdate: (id: string, updates: Partial<Pick<Task, 'title' | 'description' | 'priority' | 'dueDate' | 'tag'>>) => void
+  onUpdate: (
+    id: string,
+    updates: Partial<Pick<Task, 'title' | 'description' | 'priority' | 'dueDate' | 'tag'>>
+  ) => void
   index: number
 }
 
@@ -188,7 +184,7 @@ export function TodoItem({ todo, onToggle, onDelete, onUpdate, index }: TodoItem
           onChange={(e) => setEditTitle(e.target.value)}
           placeholder="Task title..."
           className={cn(
-            'text-foreground placeholder:text-muted-foreground/40 w-full bg-transparent text-[15px] font-medium leading-relaxed outline-none',
+            'text-foreground placeholder:text-muted-foreground/40 w-full bg-transparent text-[15px] leading-relaxed font-medium outline-none',
             'focus:placeholder:text-muted-foreground/60 transition-colors'
           )}
         />
@@ -247,13 +243,15 @@ export function TodoItem({ todo, onToggle, onDelete, onUpdate, index }: TodoItem
                   key={opt.value}
                   onClick={() => setEditPriority(opt.value)}
                   className={cn(
-                    'flex items-center gap-2.5 cursor-pointer',
+                    'flex cursor-pointer items-center gap-2.5',
                     editPriority === opt.value ? opt.color : 'text-foreground/70'
                   )}
                 >
                   <span className={cn('size-2 shrink-0 rounded-full', opt.dot)} />
                   {opt.label}
-                  {editPriority === opt.value && <Check className="text-primary ml-auto size-3.5" />}
+                  {editPriority === opt.value && (
+                    <Check className="text-primary ml-auto size-3.5" />
+                  )}
                 </DropdownMenuItem>
               ))}
             </DropdownMenuContent>
@@ -364,7 +362,16 @@ export function TodoItem({ todo, onToggle, onDelete, onUpdate, index }: TodoItem
         onClick={!todo.completed ? handleStartEdit : undefined}
         role={!todo.completed ? 'button' : undefined}
         tabIndex={!todo.completed ? 0 : undefined}
-        onKeyDown={!todo.completed ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleStartEdit() } } : undefined}
+        onKeyDown={
+          !todo.completed
+            ? (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault()
+                  handleStartEdit()
+                }
+              }
+            : undefined
+        }
         aria-label={!todo.completed ? `Edit task: ${todo.title}` : undefined}
       >
         <span

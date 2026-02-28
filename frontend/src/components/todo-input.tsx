@@ -1,5 +1,13 @@
 import { useState } from 'react'
-import { Plus, Flag, Calendar as CalendarIcon, SlidersHorizontal, Tag, X, Check } from 'lucide-react'
+import {
+  Plus,
+  Flag,
+  Calendar as CalendarIcon,
+  SlidersHorizontal,
+  Tag,
+  X,
+  Check,
+} from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,18 +17,17 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Calendar } from '@/components/ui/calendar'
 import { cn } from '@/lib/utils'
+import { priorityOptions } from './priority-config'
 import type { Priority, Tag as TagType } from './todo-item'
 
-const priorityOptions: { value: Priority; label: string; color: string; dot: string }[] = [
-  { value: 'none', label: 'None', color: 'text-muted-foreground/50', dot: 'bg-muted-foreground/30' },
-  { value: 'low', label: 'Low', color: 'text-sky-500 dark:text-sky-400', dot: 'bg-sky-500 dark:bg-sky-400' },
-  { value: 'medium', label: 'Medium', color: 'text-amber-500 dark:text-amber-400', dot: 'bg-amber-500 dark:bg-amber-400' },
-  { value: 'high', label: 'High', color: 'text-red-500 dark:text-red-400', dot: 'bg-red-500 dark:bg-red-400' },
-  { value: 'critical', label: 'Critical', color: 'text-rose-600 dark:text-rose-400', dot: 'bg-rose-600 dark:bg-rose-400' },
-]
-
 interface TodoInputProps {
-  onAdd: (text: string, priority: Priority, dueDate: Date | null, tag: TagType, description: string | null) => void
+  onAdd: (
+    text: string,
+    priority: Priority,
+    dueDate: Date | null,
+    tag: TagType,
+    description: string | null
+  ) => void
 }
 
 export function TodoInput({ onAdd }: TodoInputProps) {
@@ -32,18 +39,13 @@ export function TodoInput({ onAdd }: TodoInputProps) {
   const [showOptions, setShowOptions] = useState(false)
 
   const currentPriority = priorityOptions.find((p) => p.value === priority)!
-  const hasOptions = priority !== 'none' || dueDate || tag.trim() !== '' || description.trim() !== ''
+  const hasOptions =
+    priority !== 'none' || dueDate || tag.trim() !== '' || description.trim() !== ''
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (text.trim()) {
-      onAdd(
-        text.trim(),
-        priority,
-        dueDate || null,
-        tag.trim() || null,
-        description.trim() || null
-      )
+      onAdd(text.trim(), priority, dueDate || null, tag.trim() || null, description.trim() || null)
       setText('')
       setDescription('')
       setPriority('none')
@@ -59,8 +61,6 @@ export function TodoInput({ onAdd }: TodoInputProps) {
     setDueDate(undefined)
     setTag('')
   }
-
-  const todayStr = new Date().toISOString().split('T')[0]
 
   return (
     <form onSubmit={handleSubmit} className="px-4 py-3">
@@ -171,7 +171,7 @@ export function TodoInput({ onAdd }: TodoInputProps) {
                 key={opt.value}
                 onClick={() => setPriority(opt.value)}
                 className={cn(
-                  'flex items-center gap-2.5 cursor-pointer',
+                  'flex cursor-pointer items-center gap-2.5',
                   priority === opt.value ? opt.color : 'text-foreground/70'
                 )}
               >

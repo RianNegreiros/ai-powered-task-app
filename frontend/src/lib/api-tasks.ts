@@ -29,6 +29,29 @@ export async function createTask(body: {
   return res.json()
 }
 
+export async function updateTask(
+  id: string,
+  body: {
+    title?: string
+    description?: string | null
+    priority?: string
+    dueDate?: string | null
+    tag?: string | null
+  }
+): Promise<Task> {
+  const res = await apiFetch(`/api/tasks/me/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => null)
+    throw new Error(err?.message ?? 'Failed to update task')
+  }
+  return res.json()
+}
+
 export async function setTaskCompleted(id: string) {
   const res = await apiFetch(`/api/tasks/me/${id}`, {
     method: 'PATCH',

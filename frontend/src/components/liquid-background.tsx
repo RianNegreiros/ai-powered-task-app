@@ -5,7 +5,15 @@ export function LiquidBackground() {
       <div className="absolute inset-0 bg-[oklch(0.96_0.015_250)] dark:bg-[oklch(0.1_0.025_260)]" />
 
       {/* Subtle noise texture for dark mode depth */}
-      <div className="absolute inset-0 opacity-0 dark:opacity-[0.03]" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 256 256\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noise\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noise)\' opacity=\'0.5\'/%3E%3C/svg%3E")', backgroundRepeat: 'repeat', backgroundSize: '128px 128px' }} />
+      <div
+        className="absolute inset-0 opacity-0 dark:opacity-[0.03]"
+        style={{
+          backgroundImage:
+            "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.5'/%3E%3C/svg%3E\")",
+          backgroundRepeat: 'repeat',
+          backgroundSize: '128px 128px',
+        }}
+      />
 
       {/* Orbs - light mode */}
       <div className="animate-float-orb absolute -top-40 -left-40 h-[500px] w-[500px] rounded-full bg-[oklch(0.82_0.1_250/0.35)] blur-[100px] dark:bg-[oklch(0.35_0.15_250/0.25)]" />
@@ -25,7 +33,13 @@ export function LiquidBackground() {
       />
 
       {/* Vignette for dark mode */}
-      <div className="pointer-events-none absolute inset-0 hidden dark:block" style={{ background: 'radial-gradient(ellipse at center, transparent 40%, oklch(0.06 0.025 260 / 0.6) 100%)' }} />
+      <div
+        className="pointer-events-none absolute inset-0 hidden dark:block"
+        style={{
+          background:
+            'radial-gradient(ellipse at center, transparent 40%, oklch(0.06 0.025 260 / 0.6) 100%)',
+        }}
+      />
     </div>
   )
 }

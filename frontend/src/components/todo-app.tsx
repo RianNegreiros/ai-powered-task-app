@@ -6,7 +6,7 @@ import { GlassPanel } from './glass-panel'
 import { TodoInput } from './todo-input'
 import { TodoItem, type Priority, type Tag, type Task } from './todo-item'
 import { useAuth } from './auth-context'
-import { createTask, deleteTask, getTasks, setTaskCompleted } from '@/lib/api-tasks'
+import { createTask, deleteTask, getTasks, setTaskCompleted, updateTask } from '@/lib/api-tasks'
 
 const priorityWeight: Record<Priority, number> = {
   critical: 0,
@@ -17,9 +17,8 @@ const priorityWeight: Record<Priority, number> = {
 }
 
 const mapApiTask = (t: Task): Task => ({
-  id: t.id,
-  title: t.title,
-  completed: t.completed,
+  ...t,
+  description: t.description ?? null,
   createdAt: new Date(t.createdAt),
   priority: (t.priority?.toLowerCase() || 'none') as Priority,
   dueDate: t.dueDate ? new Date(t.dueDate) : null,
@@ -42,7 +41,8 @@ export function TodoApp() {
     title: string,
     priority: Priority,
     dueDate: Date | null,
-    tag: Tag
+    tag: Tag,
+    description: string | null
   ) => {
     try {
       const data = await createTask({
@@ -50,6 +50,7 @@ export function TodoApp() {
         priority: priority !== 'none' ? priority.toUpperCase() : undefined,
         dueDate: dueDate?.toISOString(),
         tag: tag || undefined,
+        description: description || undefined,
       })
       setTodos((prev) => [mapApiTask(data), ...prev])
       toast.success('Task created')
@@ -59,7 +60,6 @@ export function TodoApp() {
   }
 
   const handleToggleTask = async (id: string) => {
-    const task = todos.find((t) => t.id === id)
     setTodos((prev) => prev.map((t) => (t.id === id ? { ...t, completed: !t.completed } : t)))
     try {
       await setTaskCompleted(id)
@@ -70,19 +70,40 @@ export function TodoApp() {
   }
 
   const handleDeleteTask = async (id: string) => {
-    const task = todos.find((t) => t.id === id)
     setTodos((prev) => prev.filter((t) => t.id !== id))
     try {
       await deleteTask(id)
       toast.success('Task deleted')
     } catch {
-      try {
-        const data = await getTasks()
-        setTodos(data.map(mapApiTask))
-      } catch {
-        setTodos((prev) => prev)
-      }
+      const data = await getTasks().catch(() => [])
+      setTodos(data.map(mapApiTask))
       toast.error('Failed to delete task')
+    }
+  }
+
+  const handleUpdateTask = async (
+    id: string,
+    updates: Partial<Pick<Task, 'title' | 'description' | 'priority' | 'dueDate' | 'tag'>>
+  ) => {
+    const prev = todos.find((t) => t.id === id)
+    if (!prev) return
+
+    setTodos((cur) => cur.map((t) => (t.id === id ? { ...t, ...updates } : t)))
+
+    try {
+      const apiBody = {
+        title: updates.title,
+        description: updates.description,
+        priority: updates.priority !== 'none' ? updates.priority?.toUpperCase() : 'NONE',
+        dueDate: updates.dueDate?.toISOString() ?? null,
+        tag: updates.tag,
+      }
+
+      await updateTask(id, apiBody as Parameters<typeof updateTask>[1])
+      toast.success('Task updated')
+    } catch {
+      setTodos((cur) => cur.map((t) => (t.id === id ? prev : t)))
+      toast.error('Failed to update task')
     }
   }
 
@@ -165,6 +186,7 @@ export function TodoApp() {
             todo={todo}
             onToggle={handleToggleTask}
             onDelete={handleDeleteTask}
+            onUpdate={handleUpdateTask}
             index={i}
           />
         ))}
@@ -185,6 +207,7 @@ export function TodoApp() {
             todo={todo}
             onToggle={handleToggleTask}
             onDelete={handleDeleteTask}
+            onUpdate={handleUpdateTask}
             index={i + incomplete.length}
           />
         ))}
