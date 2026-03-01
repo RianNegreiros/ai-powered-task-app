@@ -33,10 +33,10 @@ public class UserService {
     @Value("${jwt.refresh-token-expiry}")
     private Long refreshTokenExpiresIn;
 
-    private UserRepository userRepository;
-    private BCryptPasswordEncoder passwordEncoder;
-    private JwtEncoder jwtEncoder;
-    private JwtDecoder jwtDecoder;
+    private final UserRepository userRepository;
+    private final BCryptPasswordEncoder passwordEncoder;
+    private final JwtEncoder jwtEncoder;
+    private final JwtDecoder jwtDecoder;
 
     public UserService(UserRepository userRepository, BCryptPasswordEncoder passwordEncoder,
             JwtEncoder jwtEncoder, JwtDecoder jwtDecoder) {
@@ -60,8 +60,7 @@ public class UserService {
         user.setPassword(passwordEncoder.encode(request.password()));
 
         User newUser = userRepository.save(user);
-
-        return new RegisterResponse(newUser.getName(), newUser.getEmail());
+        return toRegisterResponse(newUser);
     }
 
     public AuthResponse authenticateUser(LoginRequest request) {
@@ -71,11 +70,7 @@ public class UserService {
             throw new InvalidCredentialsException("Invalid email or password");
         }
 
-        var tokenValue = generateJwt(user, tokenExpiresIn, "acess");
-        var refreshTokenValue = generateJwt(user, refreshTokenExpiresIn, "refresh");
-
-        return new AuthResponse(tokenValue, tokenExpiresIn, refreshTokenValue,
-                refreshTokenExpiresIn);
+        return toAuthResponse(user);
     }
 
     public AuthResponse refreshToken(String refreshToken) {
@@ -94,16 +89,18 @@ public class UserService {
                 throw new InvalidCredentialsException("Token is not a refresh token");
             }
 
-            var tokenValue = generateJwt(user, tokenExpiresIn, "access");
-            var refreshTokenValue = generateJwt(user, refreshTokenExpiresIn, "refresh");
-
-            return new AuthResponse(tokenValue, tokenExpiresIn, refreshTokenValue,
-                    refreshTokenExpiresIn);
+            return toAuthResponse(user);
         } catch (InvalidCredentialsException e) {
             throw e;
         } catch (JwtException e) {
             throw new InvalidCredentialsException("Invalid or expired refresh token");
         }
+    }
+
+    public UserResponse getUserInfo(JwtAuthenticationToken token) {
+        User user = userRepository.findById(Long.parseLong(token.getName())).orElseThrow(
+                () -> new UserNotFoundException("User not found with ID: " + token.getName()));
+        return toUserResponse(user);
     }
 
     private String generateJwt(User user, Long expiresIn, String type) {
@@ -119,10 +116,17 @@ public class UserService {
         return passwordEncoder.matches(request.password(), userPassword);
     }
 
-    public UserResponse getUserInfo(JwtAuthenticationToken token) {
-        User user = userRepository.findById(Long.parseLong(token.getName())).orElseThrow(
-                () -> new UserNotFoundException("User not found with ID: " + token.getName()));
+    private RegisterResponse toRegisterResponse(User user) {
+        return new RegisterResponse(user.getName(), user.getEmail());
+    }
 
+    private AuthResponse toAuthResponse(User user) {
+        var tokenValue = generateJwt(user, tokenExpiresIn, "access");
+        var refreshTokenValue = generateJwt(user, refreshTokenExpiresIn, "refresh");
+        return new AuthResponse(tokenValue, tokenExpiresIn, refreshTokenValue, refreshTokenExpiresIn);
+    }
+
+    private UserResponse toUserResponse(User user) {
         return new UserResponse(user.getId().toString(), user.getName(), user.getEmail());
     }
 }

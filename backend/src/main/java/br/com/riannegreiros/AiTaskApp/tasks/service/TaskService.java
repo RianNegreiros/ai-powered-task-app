@@ -21,9 +21,9 @@ import br.com.riannegreiros.AiTaskApp.tasks.repository.TaskRepository;
 
 @Service
 public class TaskService {
-    private TaskRepository taskRepository;
-    private UserRepository userRepository;
-    private TagRepository tagRepository;
+    private final TaskRepository taskRepository;
+    private final UserRepository userRepository;
+    private final TagRepository tagRepository;
 
     public TaskService(TaskRepository taskRepository, UserRepository userRepository,
             TagRepository tagRepository) {
@@ -33,11 +33,7 @@ public class TaskService {
     }
 
     public TaskResponse saveTask(TaskRequest request, JwtAuthenticationToken token) {
-        User user = userRepository.findById(token.getName());
-
-        if (user == null) {
-            throw new UserNotFoundException("User not found with ID: " + token.getName());
-        }
+        User user = getUser(token);
 
         Task task = new Task();
         task.setTitle(request.title());
@@ -47,56 +43,30 @@ public class TaskService {
         task.setUser(user);
 
         if (request.tagIds() != null && !request.tagIds().isEmpty()) {
-            Set<Tag> tags = new HashSet<>();
-
-            for (String tagId : request.tagIds()) {
-                Long longId = Long.parseLong(tagId);
-                Tag tag = tagRepository.findById(longId).orElseThrow(() -> new TagNotFoundException(
-                        "Tag does not belong to user or do not exist"));
-                tags.add(tag);
-            }
-            task.setTags(tags);
+            task.setTags(getTags(request.tagIds()));
         }
 
         taskRepository.save(task);
-
-        return new TaskResponse(task.getId().toString(), user.getId().toString(), task.getTitle(),
-                task.getPriority(), task.getDueDate(), task.isCompleted(), task.getDescription(),
-                task.getTags().stream().map(tag -> new TagSummary(tag.getId(), tag.getName())).toList(),
-                task.getCreatedAt(), task.getUpdatedAt());
+        return toResponse(task);
     }
 
     public List<TaskResponse> listAllUserTasks(JwtAuthenticationToken token) {
-        User user = userRepository.findById(Long.parseLong(token.getName())).orElseThrow(
-                () -> new UserNotFoundException("User not found with ID: " + token.getName()));
-
+        User user = getUser(token);
         return taskRepository.findAllByUserId(user.getId()).stream()
-                .map(task -> new TaskResponse(task.getId().toString(), user.getId().toString(),
-                        task.getTitle(), task.getPriority(), task.getDueDate(), task.isCompleted(),
-                        task.getDescription(),
-                        task.getTags().stream().map(tag -> new TagSummary(tag.getId(), tag.getName())).toList(),
-                        task.getCreatedAt(), task.getUpdatedAt()))
+                .map(this::toResponse)
                 .toList();
     }
 
     public TaskResponse getTask(String taskId, JwtAuthenticationToken token) {
-        User user = userRepository.findById(Long.parseLong(token.getName())).orElseThrow(
-                () -> new UserNotFoundException("User not found with ID: " + token.getName()));
-
+        getUser(token);
         Task task = taskRepository.findById(Long.parseLong(taskId))
                 .orElseThrow(() -> new TaskNotFoundException("Task not found with ID: " + taskId));
-
-        return new TaskResponse(task.getId().toString(), user.getId().toString(), task.getTitle(),
-                task.getPriority(), task.getDueDate(), task.isCompleted(), task.getDescription(),
-                task.getTags().stream().map(tag -> new TagSummary(tag.getId(), tag.getName())).toList(),
-                task.getCreatedAt(), task.getUpdatedAt());
+        return toResponse(task);
     }
 
     public TaskResponse updateTask(String id, UpdateTaskRequest request,
             JwtAuthenticationToken token) {
-        User user = userRepository.findById(Long.parseLong(token.getName())).orElseThrow(
-                () -> new UserNotFoundException("User not found with ID: " + token.getName()));
-
+        getUser(token);
         Task task = taskRepository.findById(Long.parseLong(id))
                 .orElseThrow(() -> new TaskNotFoundException("Task not found with ID: " + id));
 
@@ -106,49 +76,48 @@ public class TaskService {
         task.setPriority(request.priority());
 
         if (request.tagIds() != null) {
-            Set<Tag> tags = new HashSet<>();
-
-            if (!request.tagIds().isEmpty()) {
-                for (String tagId : request.tagIds()) {
-                    Long longId = Long.parseLong(tagId);
-                    Tag tag = tagRepository.findById(longId).orElseThrow(() -> new TagNotFoundException(
-                            "Tag does not belong to user or do not exist"));
-                    tags.add(tag);
-                }
-            }
-            task.setTags(tags);
+            task.setTags(request.tagIds().isEmpty() ? new HashSet<>() : getTags(request.tagIds()));
         }
 
         taskRepository.save(task);
-
-        return new TaskResponse(task.getId().toString(), user.getId().toString(), task.getTitle(),
-                task.getPriority(), task.getDueDate(), task.isCompleted(), task.getDescription(),
-                task.getTags().stream().map(tag -> new TagSummary(tag.getId(), tag.getName())).toList(),
-                task.getCreatedAt(), task.getUpdatedAt());
+        return toResponse(task);
     }
 
     public void deleteTask(String id, JwtAuthenticationToken token) {
-        userRepository.findById(Long.parseLong(token.getName())).orElseThrow(
-                () -> new UserNotFoundException("User not found with ID: " + token.getName()));
-
-        Task task = taskRepository.findById(Long.parseLong(id))
-                .orElseThrow(() -> new TaskNotFoundException("Task not found with ID: " + id));
-
-        taskRepository.delete(task);
+        getUser(token);
+        taskRepository.delete(taskRepository.findById(Long.parseLong(id))
+                .orElseThrow(() -> new TaskNotFoundException("Task not found with ID: " + id)));
     }
 
     public TaskResponse toggleTaskCompleted(String id, JwtAuthenticationToken token) {
-        User user = userRepository.findById(Long.parseLong(token.getName())).orElseThrow(
-                () -> new UserNotFoundException("User not found with ID: " + token.getName()));
-
+        getUser(token);
         Task task = taskRepository.findById(Long.parseLong(id))
                 .orElseThrow(() -> new TaskNotFoundException("Task not found with ID: " + id));
 
         task.toggleTaskCompleted();
         taskRepository.save(task);
+        return toResponse(task);
+    }
 
-        return new TaskResponse(task.getId().toString(), user.getId().toString(), task.getTitle(),
-                task.getPriority(), task.getDueDate(), task.isCompleted(), task.getDescription(),
+    private User getUser(JwtAuthenticationToken token) {
+        return userRepository.findById(Long.parseLong(token.getName()))
+                .orElseThrow(() -> new UserNotFoundException("User not found with ID: " + token.getName()));
+    }
+
+    private Set<Tag> getTags(List<String> tagIds) {
+        Set<Tag> tags = new HashSet<>();
+        for (String tagId : tagIds) {
+            Tag tag = tagRepository.findById(Long.parseLong(tagId))
+                    .orElseThrow(() -> new TagNotFoundException("Tag does not belong to user or do not exist"));
+            tags.add(tag);
+        }
+        return tags;
+    }
+
+    private TaskResponse toResponse(Task task) {
+        return new TaskResponse(task.getId().toString(), task.getUser().getId().toString(),
+                task.getTitle(), task.getPriority(), task.getDueDate(), task.isCompleted(),
+                task.getDescription(),
                 task.getTags().stream().map(tag -> new TagSummary(tag.getId(), tag.getName())).toList(),
                 task.getCreatedAt(), task.getUpdatedAt());
     }
