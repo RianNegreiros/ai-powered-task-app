@@ -32,37 +32,42 @@ export interface Task {
 
 const priorityConfig: Record<
   Priority,
-  { color: string; ringColor: string; bgColor: string; label: string }
+  { color: string; ringColor: string; bgColor: string; label: string; stripColor: string }
 > = {
   critical: {
     color: 'text-rose-600 dark:text-rose-400',
     ringColor: 'border-rose-500/70 dark:border-rose-400/60',
     bgColor: 'bg-rose-500/10 dark:bg-rose-400/15',
     label: 'Critical',
+    stripColor: 'bg-rose-500/70 dark:bg-rose-400/60',
   },
   high: {
     color: 'text-red-500 dark:text-red-400',
     ringColor: 'border-red-400/60 dark:border-red-400/50',
     bgColor: 'bg-red-500/10 dark:bg-red-400/15',
     label: 'High',
+    stripColor: 'bg-red-400/60 dark:bg-red-400/50',
   },
   medium: {
     color: 'text-amber-500 dark:text-amber-400',
     ringColor: 'border-amber-400/60 dark:border-amber-400/50',
     bgColor: 'bg-amber-500/10 dark:bg-amber-400/15',
     label: 'Medium',
+    stripColor: 'bg-amber-400/60 dark:bg-amber-400/50',
   },
   low: {
     color: 'text-sky-500 dark:text-sky-400',
     ringColor: 'border-sky-400/60 dark:border-sky-400/50',
     bgColor: 'bg-sky-500/10 dark:bg-sky-400/15',
     label: 'Low',
+    stripColor: 'bg-sky-400/50 dark:bg-sky-400/40',
   },
   none: {
     color: 'text-muted-foreground/40',
     ringColor: 'border-foreground/20',
     bgColor: '',
     label: 'None',
+    stripColor: '',
   },
 }
 
@@ -85,6 +90,13 @@ function formatDueDate(date: Date): { label: string; isOverdue: boolean; isSoon:
   }
 }
 
+// Deterministic hue from tag name for colored dots
+function tagHue(name: string): number {
+  let hash = 0
+  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash)
+  return Math.abs(hash) % 360
+}
+
 interface TodoItemProps {
   todo: Task
   onToggle: (id: string) => void
@@ -100,6 +112,7 @@ interface TodoItemProps {
 export function TodoItem({ todo, onToggle, onDelete, onUpdate, index, tags }: TodoItemProps) {
   const [isDeleting, setIsDeleting] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
+  const [completionFlash, setCompletionFlash] = useState(false)
 
   // Edit form state
   const [editTitle, setEditTitle] = useState(todo.title)
@@ -108,9 +121,7 @@ export function TodoItem({ todo, onToggle, onDelete, onUpdate, index, tags }: To
   const [editDueDate, setEditDueDate] = useState<Date | undefined>(
     todo.dueDate instanceof Date && !isNaN(todo.dueDate.getTime()) ? todo.dueDate : undefined
   )
-  const [editTagIds, setEditTagIds] = useState<string[]>(
-    todo.tags.map((t) => t.id.toString())
-  )
+  const [editTagIds, setEditTagIds] = useState<string[]>(todo.tags.map((t) => t.id.toString()))
 
   const editTitleRef = useRef<HTMLInputElement>(null)
 
@@ -143,7 +154,9 @@ export function TodoItem({ todo, onToggle, onDelete, onUpdate, index, tags }: To
 
   const handleSaveEdit = () => {
     if (!editTitle.trim()) return
-    const selectedTags = tags.filter((t) => editTagIds.includes(t.id)).map((t) => ({ id: parseInt(t.id), name: t.name }))
+    const selectedTags = tags
+      .filter((t) => editTagIds.includes(t.id))
+      .map((t) => ({ id: parseInt(t.id), name: t.name }))
     onUpdate(todo.id, {
       title: editTitle.trim(),
       description: editDescription.trim() || null,
@@ -225,7 +238,9 @@ export function TodoItem({ todo, onToggle, onDelete, onUpdate, index, tags }: To
                 )}
               >
                 <Tag className="size-3.5" />
-                {editTagIds.length > 0 ? `${editTagIds.length} tag${editTagIds.length > 1 ? 's' : ''}` : 'Tags'}
+                {editTagIds.length > 0
+                  ? `${editTagIds.length} tag${editTagIds.length > 1 ? 's' : ''}`
+                  : 'Tags'}
               </button>
             </PopoverTrigger>
             <PopoverContent align="start" className="w-52 p-2">
@@ -234,16 +249,22 @@ export function TodoItem({ todo, onToggle, onDelete, onUpdate, index, tags }: To
                   <button
                     key={t.id}
                     type="button"
-                    onClick={() => setEditTagIds(prev => 
-                      prev.includes(t.id) ? prev.filter(id => id !== t.id) : [...prev, t.id]
-                    )}
+                    onClick={() =>
+                      setEditTagIds((prev) =>
+                        prev.includes(t.id) ? prev.filter((id) => id !== t.id) : [...prev, t.id]
+                      )
+                    }
                     className="hover:bg-accent flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors"
                   >
-                    <div className={cn(
-                      "flex size-4 items-center justify-center rounded border",
-                      editTagIds.includes(t.id) ? "bg-primary border-primary" : "border-input"
-                    )}>
-                      {editTagIds.includes(t.id) && <Check className="size-3 text-primary-foreground" />}
+                    <div
+                      className={cn(
+                        'flex size-4 items-center justify-center rounded border',
+                        editTagIds.includes(t.id) ? 'bg-primary border-primary' : 'border-input'
+                      )}
+                    >
+                      {editTagIds.includes(t.id) && (
+                        <Check className="text-primary-foreground size-3" />
+                      )}
                     </div>
                     <span className="flex-1 text-left">{t.name}</span>
                   </button>
@@ -345,20 +366,36 @@ export function TodoItem({ todo, onToggle, onDelete, onUpdate, index, tags }: To
   }
 
   // ── Read mode ──
+  const isOverdue = due?.isOverdue ?? false
   return (
     <div
       className={cn(
-        'group animate-slide-up flex items-start gap-4 px-5 py-4',
+        'group animate-slide-up relative flex items-start gap-4 px-5 py-4',
         'transition-all duration-300 ease-out',
         'border-glass-border/50 border-b last:border-b-0',
-        'hover:bg-foreground/2 dark:hover:bg-foreground/3',
+        isOverdue
+          ? 'hover:bg-red-500/5 dark:hover:bg-red-400/5'
+          : 'hover:bg-foreground/2 dark:hover:bg-foreground/3',
+        completionFlash && 'animate-completion-flash',
         isDeleting && '-translate-x-2 scale-95 opacity-0'
       )}
       style={{ animationDelay: `${index * 40}ms` }}
     >
+      {/* Priority left strip */}
+      {todo.priority !== 'none' && !todo.completed && (
+        <div
+          className={cn('absolute top-3 bottom-3 left-0 w-[3px] rounded-full', pCfg.stripColor)}
+        />
+      )}
       {/* Checkbox */}
       <button
-        onClick={() => onToggle(todo.id)}
+        onClick={() => {
+          if (!todo.completed) {
+            setCompletionFlash(true)
+            setTimeout(() => setCompletionFlash(false), 700)
+          }
+          onToggle(todo.id)
+        }}
         className={cn(
           'relative mt-1 flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-full transition-all duration-300',
           todo.completed
@@ -425,12 +462,22 @@ export function TodoItem({ todo, onToggle, onDelete, onUpdate, index, tags }: To
         {/* Meta row: tag + priority badge + due date */}
         {!todo.completed && (todo.priority !== 'none' || due || todo.tags.length > 0) && (
           <div className="mt-0.5 flex flex-wrap items-center gap-2">
-            {todo.tags.map((tag) => (
-              <span key={tag.id} className="bg-foreground/8 text-foreground/80 dark:bg-foreground/10 dark:text-foreground/80 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium">
-                <Tag className="size-3" aria-hidden="true" />
-                <span>{tag.name}</span>
-              </span>
-            ))}
+            {todo.tags.map((tag) => {
+              const hue = tagHue(tag.name)
+              return (
+                <span
+                  key={tag.id}
+                  className="bg-foreground/8 text-foreground/80 dark:bg-foreground/10 dark:text-foreground/80 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium"
+                >
+                  <span
+                    className="size-2 shrink-0 rounded-full"
+                    style={{ backgroundColor: `oklch(0.65 0.18 ${hue})` }}
+                    aria-hidden="true"
+                  />
+                  <span>{tag.name}</span>
+                </span>
+              )
+            })}
             {todo.priority !== 'none' && (
               <span
                 className={cn(

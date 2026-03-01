@@ -145,11 +145,21 @@ export function TodoApp() {
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-5 py-12 md:py-20">
-      <header className="flex flex-col gap-1 px-1">
+      <header className="flex flex-col gap-0.5 px-1">
         <div className="flex items-center justify-between">
-          <h1 className="text-foreground text-3xl font-semibold tracking-tight">Today</h1>
+          <div>
+            <h1 className="font-display text-foreground text-3xl font-semibold tracking-tight">
+              Today
+            </h1>
+            {user && (
+              <p className="text-muted-foreground/60 mt-0.5 text-sm">
+                {'Hello, '}
+                <span className="text-foreground/70 font-medium">{user.name.split(' ')[0]}</span>
+              </p>
+            )}
+          </div>
           <div className="flex items-center gap-3">
-            <p className="text-muted-foreground text-sm">{dateStr}</p>
+            <p className="text-muted-foreground/70 text-sm font-medium">{dateStr}</p>
             {user && (
               <>
                 <Link
@@ -180,12 +190,6 @@ export function TodoApp() {
             )}
           </div>
         </div>
-        {user && (
-          <p className="text-muted-foreground/60 text-sm">
-            {'Hello, '}
-            <span className="text-foreground/70 font-medium">{user.name.split(' ')[0]}</span>
-          </p>
-        )}
       </header>
 
       <GlassPanel>
@@ -232,8 +236,33 @@ export function TodoApp() {
         ))}
 
         {todos.length === 0 && (
-          <div className="flex flex-col items-center py-12">
-            <p className="text-muted-foreground/60 text-sm">No tasks yet</p>
+          <div className="flex flex-col items-center gap-3 py-14">
+            <div className="bg-primary/10 dark:bg-primary/15 flex size-12 items-center justify-center rounded-full">
+              <svg
+                className="text-primary/60 size-6"
+                viewBox="0 0 24 24"
+                fill="none"
+                aria-hidden="true"
+              >
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="9"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeDasharray="2 2"
+                />
+                <path
+                  d="M8.5 12L11 14.5L15.5 9.5"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </div>
+            <p className="text-muted-foreground/60 text-sm font-medium">You're all caught up</p>
+            <p className="text-muted-foreground/40 text-xs">Add a task above to get started</p>
           </div>
         )}
       </GlassPanel>

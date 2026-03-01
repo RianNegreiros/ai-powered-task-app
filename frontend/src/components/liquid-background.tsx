@@ -25,6 +25,11 @@ export function LiquidBackground() {
         className="animate-float-orb absolute top-1/2 left-1/3 h-[350px] w-[350px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[oklch(0.88_0.06_280/0.2)] blur-[100px] dark:bg-[oklch(0.28_0.1_280/0.15)]"
         style={{ animationDelay: '-15s' }}
       />
+      {/* Warm amber accent orb */}
+      <div
+        className="animate-float-orb absolute top-[60%] right-[10%] h-[300px] w-[300px] rounded-full bg-[oklch(0.88_0.12_65/0.22)] blur-[90px] dark:bg-[oklch(0.4_0.14_55/0.18)]"
+        style={{ animationDelay: '-5s' }}
+      />
 
       {/* Extra dark mode accent glow */}
       <div

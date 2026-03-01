@@ -1,9 +1,15 @@
 import { useState, useEffect } from 'react'
-import { Plus, X, Tag as TagIcon, ArrowLeft } from 'lucide-react'
+import { Plus, X, ArrowLeft } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
 import { GlassPanel } from './glass-panel'
 import { getTags, createTag, deleteTag, type Tag } from '@/lib/api-tags'
+
+function tagHue(name: string): number {
+  let hash = 0
+  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash)
+  return Math.abs(hash) % 360
+}
 
 export function TagsPage() {
   const [tags, setTags] = useState<Tag[]>([])
@@ -38,7 +44,9 @@ export function TagsPage() {
       await deleteTag(id)
       toast.success('Tag deleted')
     } catch {
-      getTags().then(setTags).catch(() => {})
+      getTags()
+        .then(setTags)
+        .catch(() => {})
       toast.error('Failed to delete tag')
     }
   }
@@ -65,7 +73,7 @@ export function TagsPage() {
         >
           <ArrowLeft className="size-3.5" />
         </Link>
-        <h1 className="text-foreground text-3xl font-semibold tracking-tight">Tags</h1>
+        <h1 className="font-display text-foreground text-3xl font-semibold tracking-tight">Tags</h1>
       </header>
 
       <GlassPanel>
@@ -74,7 +82,7 @@ export function TagsPage() {
             <button
               type="submit"
               disabled={!newTag.trim()}
-              className="flex size-[22px] shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-50"
+              className="bg-primary text-primary-foreground flex size-[22px] shrink-0 items-center justify-center rounded-full transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-50"
               aria-label="Add tag"
             >
               <Plus className="size-3.5" strokeWidth={2.5} />
@@ -95,9 +103,12 @@ export function TagsPage() {
           {tags.map((tag) => (
             <div
               key={tag.id}
-              className="group flex items-center gap-3 rounded-lg px-3 py-2 transition-colors hover:bg-glass-bg/40"
+              className="group hover:bg-glass-bg/40 flex items-center gap-3 rounded-lg px-3 py-2 transition-colors"
             >
-              <TagIcon className="text-muted-foreground/60 size-4 shrink-0" />
+              <span
+                className="size-2.5 shrink-0 rounded-full"
+                style={{ backgroundColor: `oklch(0.65 0.18 ${tagHue(tag.name)})` }}
+              />
               <span className="text-foreground flex-1 text-sm">{tag.name}</span>
               <button
                 onClick={() => handleDelete(tag.id)}

@@ -1,8 +1,10 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap');
 
 @theme {
-  --font-sans: 'Inter', sans-serif;
+  --font-sans: 'DM Sans', sans-serif;
+  --font-display: 'Bricolage Grotesque', sans-serif;
 }
 
 @custom-variant dark (&:is(.dark *));
@@ -191,4 +193,24 @@
 
 .animate-check-pop {
   animation: check-pop 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes completion-flash {
+  0% {
+    background-color: transparent;
+  }
+  25% {
+    background-color: oklch(0.55 0.18 145 / 0.1);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+.animate-completion-flash {
+  animation: completion-flash 0.7s ease-out forwards;
+}
+
+.font-display {
+  font-family: var(--font-display);
 }

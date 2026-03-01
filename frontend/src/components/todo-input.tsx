@@ -23,6 +23,12 @@ import type { Priority, TaskTag } from './todo-item'
 import type { Tag as TagEntity } from '@/lib/api-tags'
 import { createTag } from '@/lib/api-tags'
 
+function tagHue(name: string): number {
+  let hash = 0
+  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash)
+  return Math.abs(hash) % 360
+}
+
 interface TodoInputProps {
   onAdd: (
     text: string,
@@ -99,7 +105,7 @@ export function TodoInput({ onAdd, tags, onTagCreated }: TodoInputProps) {
           type="submit"
           disabled={!text.trim()}
           className={cn(
-            'ursor-pointer flex size-5.5 shrink-0 items-center justify-center rounded-full transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-50',
+            'ursor-pointer flex size-[22px] shrink-0 items-center justify-center rounded-full transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-50',
             text.trim()
               ? 'bg-primary text-primary-foreground'
               : 'border-primary/40 text-primary/40 border-[1.5px]'
@@ -139,7 +145,7 @@ export function TodoInput({ onAdd, tags, onTagCreated }: TodoInputProps) {
       {/* Description row */}
       <div
         className={cn(
-          'ml-8.5 overflow-hidden transition-all duration-300 ease-out',
+          'ml-[34px] overflow-hidden transition-all duration-300 ease-out',
           showOptions && text.trim() ? 'mt-2 opacity-100' : 'mt-0 max-h-0 opacity-0'
         )}
       >
@@ -161,7 +167,7 @@ export function TodoInput({ onAdd, tags, onTagCreated }: TodoInputProps) {
       {/* Options row - toggle via button */}
       <div
         className={cn(
-          'ml-8.5 flex flex-wrap items-center gap-2 overflow-hidden transition-all duration-300 ease-out',
+          'ml-[34px] flex flex-wrap items-center gap-2 overflow-hidden transition-all duration-300 ease-out',
           showOptions && text.trim() ? 'mt-2 opacity-100' : 'mt-0 max-h-0 opacity-0'
         )}
       >
@@ -205,6 +211,10 @@ export function TodoInput({ onAdd, tags, onTagCreated }: TodoInputProps) {
                       <Check className="text-primary-foreground size-3" />
                     )}
                   </div>
+                  <span
+                    className="size-2 shrink-0 rounded-full"
+                    style={{ backgroundColor: `oklch(0.65 0.18 ${tagHue(t.name)})` }}
+                  />
                   <span className="flex-1 text-left">{t.name}</span>
                 </button>
               ))}
@@ -315,9 +325,9 @@ export function TodoInput({ onAdd, tags, onTagCreated }: TodoInputProps) {
 
       {/* Active options summary (shown when options panel is collapsed but options are set) */}
       {!showOptions && hasOptions && text.trim() && (
-        <div className="mt-1.5 ml-8.5 flex flex-wrap items-center gap-1.5">
+        <div className="mt-1.5 ml-[34px] flex flex-wrap items-center gap-1.5">
           {description.trim() && (
-            <span className="bg-foreground/5 text-foreground/50 dark:bg-foreground/8 dark:text-foreground/60 inline-flex max-w-45 truncate rounded-full px-2 py-0.5 text-[10px] font-medium italic">
+            <span className="bg-foreground/5 text-foreground/50 dark:bg-foreground/8 dark:text-foreground/60 inline-flex max-w-[180px] truncate rounded-full px-2 py-0.5 text-[10px] font-medium italic">
               {description.trim()}
             </span>
           )}
@@ -326,7 +336,10 @@ export function TodoInput({ onAdd, tags, onTagCreated }: TodoInputProps) {
               key={tag.id}
               className="bg-foreground/5 text-foreground/60 dark:bg-foreground/8 dark:text-foreground/70 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium"
             >
-              <Tag className="size-2" />
+              <span
+                className="size-1.5 shrink-0 rounded-full"
+                style={{ backgroundColor: `oklch(0.65 0.18 ${tagHue(tag.name)})` }}
+              />
               {tag.name}
             </span>
           ))}
