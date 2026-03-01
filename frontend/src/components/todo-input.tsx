@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import {
   Plus,
   Flag,
@@ -7,6 +7,7 @@ import {
   Tag,
   X,
   Check,
+  Loader2,
 } from 'lucide-react'
 import {
   DropdownMenu,
@@ -20,6 +21,7 @@ import { cn } from '@/lib/utils'
 import { priorityOptions } from './priority-config'
 import type { Priority, TaskTag } from './todo-item'
 import type { Tag as TagEntity } from '@/lib/api-tags'
+import { createTag } from '@/lib/api-tags'
 
 interface TodoInputProps {
   onAdd: (
@@ -30,31 +32,30 @@ interface TodoInputProps {
     description: string | null
   ) => void
   tags: TagEntity[]
+  onTagCreated?: (tag: TagEntity) => void
 }
 
-export function TodoInput({ onAdd, tags }: TodoInputProps) {
+export function TodoInput({ onAdd, tags, onTagCreated }: TodoInputProps) {
   const [text, setText] = useState('')
   const [description, setDescription] = useState('')
   const [priority, setPriority] = useState<Priority>('none')
   const [dueDate, setDueDate] = useState<Date | undefined>()
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([])
   const [showOptions, setShowOptions] = useState(false)
+  const [newTagName, setNewTagName] = useState('')
+  const [isCreatingTag, setIsCreatingTag] = useState(false)
+  const newTagInputRef = useRef<HTMLInputElement>(null)
 
   const currentPriority = priorityOptions.find((p) => p.value === priority)!
   const selectedTags = tags.filter((t) => selectedTagIds.includes(t.id))
-  const hasOptions = priority !== 'none' || dueDate || selectedTagIds.length > 0 || description.trim() !== ''
+  const hasOptions =
+    priority !== 'none' || dueDate || selectedTagIds.length > 0 || description.trim() !== ''
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (text.trim()) {
       const taskTags = selectedTags.map((t) => ({ id: parseInt(t.id), name: t.name }))
-      onAdd(
-        text.trim(),
-        priority,
-        dueDate || null,
-        taskTags,
-        description.trim() || null
-      )
+      onAdd(text.trim(), priority, dueDate || null, taskTags, description.trim() || null)
       setText('')
       setDescription('')
       setPriority('none')
@@ -71,6 +72,25 @@ export function TodoInput({ onAdd, tags }: TodoInputProps) {
     setSelectedTagIds([])
   }
 
+  const handleCreateTag = async (e: React.FormEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    const trimmed = newTagName.trim()
+    if (!trimmed || isCreatingTag) return
+    setIsCreatingTag(true)
+    try {
+      const tag = await createTag(trimmed)
+      onTagCreated?.(tag)
+      setSelectedTagIds((prev) => [...prev, tag.id])
+      setNewTagName('')
+      newTagInputRef.current?.focus()
+    } catch {
+      // silently fail — parent toast handles errors
+    } finally {
+      setIsCreatingTag(false)
+    }
+  }
+
   return (
     <form onSubmit={handleSubmit} className="px-4 py-3">
       {/* Main input row */}
@@ -79,7 +99,7 @@ export function TodoInput({ onAdd, tags }: TodoInputProps) {
           type="submit"
           disabled={!text.trim()}
           className={cn(
-            'ursor-pointer flex size-[22px] shrink-0 items-center justify-center rounded-full transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-50',
+            'ursor-pointer flex size-5.5 shrink-0 items-center justify-center rounded-full transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-50',
             text.trim()
               ? 'bg-primary text-primary-foreground'
               : 'border-primary/40 text-primary/40 border-[1.5px]'
@@ -119,7 +139,7 @@ export function TodoInput({ onAdd, tags }: TodoInputProps) {
       {/* Description row */}
       <div
         className={cn(
-          'ml-[34px] overflow-hidden transition-all duration-300 ease-out',
+          'ml-8.5 overflow-hidden transition-all duration-300 ease-out',
           showOptions && text.trim() ? 'mt-2 opacity-100' : 'mt-0 max-h-0 opacity-0'
         )}
       >
@@ -141,7 +161,7 @@ export function TodoInput({ onAdd, tags }: TodoInputProps) {
       {/* Options row - toggle via button */}
       <div
         className={cn(
-          'ml-[34px] flex flex-wrap items-center gap-2 overflow-hidden transition-all duration-300 ease-out',
+          'ml-8.5 flex flex-wrap items-center gap-2 overflow-hidden transition-all duration-300 ease-out',
           showOptions && text.trim() ? 'mt-2 opacity-100' : 'mt-0 max-h-0 opacity-0'
         )}
       >
@@ -157,7 +177,9 @@ export function TodoInput({ onAdd, tags }: TodoInputProps) {
               )}
             >
               <Tag className="size-3" />
-              {selectedTagIds.length > 0 ? `${selectedTagIds.length} tag${selectedTagIds.length > 1 ? 's' : ''}` : 'Tags'}
+              {selectedTagIds.length > 0
+                ? `${selectedTagIds.length} tag${selectedTagIds.length > 1 ? 's' : ''}`
+                : 'Tags'}
             </button>
           </PopoverTrigger>
           <PopoverContent align="start" className="w-48 p-2">
@@ -166,20 +188,54 @@ export function TodoInput({ onAdd, tags }: TodoInputProps) {
                 <button
                   key={t.id}
                   type="button"
-                  onClick={() => setSelectedTagIds(prev => 
-                    prev.includes(t.id) ? prev.filter(id => id !== t.id) : [...prev, t.id]
-                  )}
+                  onClick={() =>
+                    setSelectedTagIds((prev) =>
+                      prev.includes(t.id) ? prev.filter((id) => id !== t.id) : [...prev, t.id]
+                    )
+                  }
                   className="hover:bg-accent flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors"
                 >
-                  <div className={cn(
-                    "flex size-4 items-center justify-center rounded border",
-                    selectedTagIds.includes(t.id) ? "bg-primary border-primary" : "border-input"
-                  )}>
-                    {selectedTagIds.includes(t.id) && <Check className="size-3 text-primary-foreground" />}
+                  <div
+                    className={cn(
+                      'flex size-4 items-center justify-center rounded border',
+                      selectedTagIds.includes(t.id) ? 'bg-primary border-primary' : 'border-input'
+                    )}
+                  >
+                    {selectedTagIds.includes(t.id) && (
+                      <Check className="text-primary-foreground size-3" />
+                    )}
                   </div>
                   <span className="flex-1 text-left">{t.name}</span>
                 </button>
               ))}
+              {tags.length === 0 && (
+                <p className="text-muted-foreground/50 px-2 py-1 text-xs">No tags yet</p>
+              )}
+            </div>
+            {/* Inline tag creation */}
+            <div className="border-glass-border/60 mt-2 border-t pt-2">
+              <form onSubmit={handleCreateTag} className="flex items-center gap-1.5">
+                <input
+                  ref={newTagInputRef}
+                  type="text"
+                  value={newTagName}
+                  onChange={(e) => setNewTagName(e.target.value)}
+                  placeholder="New tag..."
+                  className="text-foreground placeholder:text-muted-foreground/40 min-w-0 flex-1 bg-transparent text-xs outline-none"
+                />
+                <button
+                  type="submit"
+                  disabled={!newTagName.trim() || isCreatingTag}
+                  className="text-muted-foreground hover:text-primary flex shrink-0 items-center justify-center transition-colors duration-150 disabled:opacity-30"
+                  aria-label="Create tag"
+                >
+                  {isCreatingTag ? (
+                    <Loader2 className="size-3.5 animate-spin" />
+                  ) : (
+                    <Plus className="size-3.5" />
+                  )}
+                </button>
+              </form>
             </div>
           </PopoverContent>
         </Popover>
@@ -259,14 +315,17 @@ export function TodoInput({ onAdd, tags }: TodoInputProps) {
 
       {/* Active options summary (shown when options panel is collapsed but options are set) */}
       {!showOptions && hasOptions && text.trim() && (
-        <div className="mt-1.5 ml-[34px] flex flex-wrap items-center gap-1.5">
+        <div className="mt-1.5 ml-8.5 flex flex-wrap items-center gap-1.5">
           {description.trim() && (
-            <span className="bg-foreground/5 text-foreground/50 dark:bg-foreground/8 dark:text-foreground/60 inline-flex max-w-[180px] truncate rounded-full px-2 py-0.5 text-[10px] font-medium italic">
+            <span className="bg-foreground/5 text-foreground/50 dark:bg-foreground/8 dark:text-foreground/60 inline-flex max-w-45 truncate rounded-full px-2 py-0.5 text-[10px] font-medium italic">
               {description.trim()}
             </span>
           )}
           {selectedTags.map((tag) => (
-            <span key={tag.id} className="bg-foreground/5 text-foreground/60 dark:bg-foreground/8 dark:text-foreground/70 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium">
+            <span
+              key={tag.id}
+              className="bg-foreground/5 text-foreground/60 dark:bg-foreground/8 dark:text-foreground/70 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium"
+            >
               <Tag className="size-2" />
               {tag.name}
             </span>

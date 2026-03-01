@@ -19,10 +19,11 @@ export function TagsPage() {
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!newTag.trim()) return
+    const trimmed = newTag.trim()
+    if (!trimmed) return
 
     try {
-      const tag = await createTag(newTag.trim())
+      const tag = await createTag(trimmed)
       setTags((prev) => [...prev, tag])
       setNewTag('')
       toast.success('Tag created')

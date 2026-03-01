@@ -189,7 +189,11 @@ export function TodoApp() {
       </header>
 
       <GlassPanel>
-        <TodoInput onAdd={handleCreateTask} tags={tags} />
+        <TodoInput
+          onAdd={handleCreateTask}
+          tags={tags}
+          onTagCreated={(tag) => setTags((prev) => [...prev, tag])}
+        />
 
         {todos.length > 0 && <div className="bg-glass-border/60 mx-4 h-px" />}
 
