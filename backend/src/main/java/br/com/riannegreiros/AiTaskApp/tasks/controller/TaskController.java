@@ -21,7 +21,7 @@ import jakarta.validation.Valid;
 @RestController
 @RequestMapping("/api/tasks")
 public class TaskController {
-    private TaskService taskService;
+    private final TaskService taskService;
 
     public TaskController(TaskService taskService) {
         this.taskService = taskService;
@@ -30,42 +30,36 @@ public class TaskController {
     @PostMapping
     public ResponseEntity<TaskResponse> createTask(@Valid @RequestBody TaskRequest request,
             JwtAuthenticationToken token) {
-        TaskResponse response = taskService.saveTask(request, token);
-
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(taskService.saveTask(request, token));
     }
 
     @GetMapping("/me")
     public ResponseEntity<List<TaskResponse>> listAllUserTasks(JwtAuthenticationToken token) {
-        List<TaskResponse> tasks = taskService.listAllUserTasks(token);
-        return ResponseEntity.ok(tasks);
+        return ResponseEntity.ok(taskService.listAllUserTasks(token));
     }
 
     @GetMapping("/me/{id}")
     public ResponseEntity<TaskResponse> getTask(@PathVariable String id,
             JwtAuthenticationToken token) {
-        TaskResponse task = taskService.getTask(id, token);
-        return ResponseEntity.ok(task);
+        return ResponseEntity.ok(taskService.getTask(id, token));
     }
 
     @PutMapping("/me/{id}")
     public ResponseEntity<TaskResponse> updateTask(@PathVariable String id,
             @Valid @RequestBody UpdateTaskRequest request, JwtAuthenticationToken token) {
-        TaskResponse task = taskService.updateTask(id, request, token);
-        return ResponseEntity.ok(task);
+        return ResponseEntity.ok(taskService.updateTask(id, request, token));
     }
 
     @DeleteMapping("/me/{id}")
-    public ResponseEntity<String> deleteTask(@PathVariable String id,
+    public ResponseEntity<Void> deleteTask(@PathVariable String id,
             JwtAuthenticationToken token) {
         taskService.deleteTask(id, token);
-        return ResponseEntity.ok("Task with ID: " + id + " deleted successfully.");
+        return ResponseEntity.noContent().build();
     }
 
     @PatchMapping("/me/{id}")
     public ResponseEntity<TaskResponse> toggleTaskCompleted(@PathVariable String id,
             JwtAuthenticationToken token) {
-        TaskResponse reponse = taskService.toggleTaskCompleted(id, token);
-        return ResponseEntity.ok(reponse);
+        return ResponseEntity.ok(taskService.toggleTaskCompleted(id, token));
     }
 }

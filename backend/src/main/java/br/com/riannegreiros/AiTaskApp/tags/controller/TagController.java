@@ -14,34 +14,28 @@ import br.com.riannegreiros.AiTaskApp.tags.Service.TagService;
 import br.com.riannegreiros.AiTaskApp.tags.model.dto.TagRequest;
 import br.com.riannegreiros.AiTaskApp.tags.model.dto.TagResponse;
 
-
-
 @RestController
 @RequestMapping("/api/tags")
 public class TagController {
-    private TagService tagService;
+    private final TagService tagService;
 
     public TagController(TagService tagService) {
         this.tagService = tagService;
     }
 
     @PostMapping
-    public ResponseEntity<TagResponse> createTag(@RequestBody TagRequest request,
-            JwtAuthenticationToken token) {
-        TagResponse response = tagService.createTag(request, token);
-
-        return ResponseEntity.ok(response);
+    public ResponseEntity<TagResponse> createTag(@RequestBody TagRequest request, JwtAuthenticationToken token) {
+        return ResponseEntity.ok(tagService.createTag(request, token));
     }
 
     @GetMapping("/me")
     public ResponseEntity<List<TagResponse>> getUserTags(JwtAuthenticationToken token) {
-        List<TagResponse> tags = tagService.listTags(token);
-        return ResponseEntity.ok(tags);
+        return ResponseEntity.ok(tagService.listTags(token));
     }
 
     @DeleteMapping("/me/{id}")
-    public ResponseEntity<String> deleteTag(@PathVariable String id, JwtAuthenticationToken token) {
+    public ResponseEntity<Void> deleteTag(@PathVariable String id, JwtAuthenticationToken token) {
         tagService.deleteTag(id, token);
-        return ResponseEntity.ok("Tag with ID: " + id + " deleted successfully.");
+        return ResponseEntity.noContent().build();
     }
 }

@@ -19,7 +19,7 @@ import jakarta.validation.Valid;
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
-    private UserService userService;
+    private final UserService userService;
 
     public AuthController(UserService userService) {
         this.userService = userService;
@@ -27,32 +27,22 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<RegisterResponse> register(@Valid @RequestBody RegisterRequest request) {
-        RegisterResponse newUser = userService.saveUser(request);
-
-        return ResponseEntity.ok(newUser);
+        return ResponseEntity.ok(userService.saveUser(request));
     }
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
-        AuthResponse loginResponse = userService.authenticateUser(request);
-
-        return ResponseEntity.ok(loginResponse);
+        return ResponseEntity.ok(userService.authenticateUser(request));
     }
 
     @PostMapping("/refresh-token")
     public ResponseEntity<AuthResponse> refreshToken(
             @Valid @RequestBody RefreshTokenRequest request) {
-
-        AuthResponse response = userService.refreshToken(request.refreshToken());
-
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(userService.refreshToken(request.refreshToken()));
     }
 
     @GetMapping("/me")
     public ResponseEntity<UserResponse> getUserInfo(JwtAuthenticationToken token) {
-
-        UserResponse response = userService.getUserInfo(token);
-
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(userService.getUserInfo(token));
     }
 }
