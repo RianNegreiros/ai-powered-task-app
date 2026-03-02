@@ -1,5 +1,8 @@
 # Smart Task Management with AI Insights
 
+![Tasks screen preview](./_docs/tasks.png)
+![AI reports screen preview](./_docs/ai-reports.png)
+
 ## Vision
 A task management app that not only helps users organize tasks but provides 
 weekly AI-powered insights to improve productivity patterns.
