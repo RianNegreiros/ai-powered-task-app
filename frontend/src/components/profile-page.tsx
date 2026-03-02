@@ -36,7 +36,7 @@ export function ProfilePage() {
       <header className="flex items-center justify-between px-1">
         <h1 className="text-foreground text-3xl font-semibold tracking-tight">Profile</h1>
         <Link
-          to="/"
+          to="/tasks"
           className="bg-glass-bg/60 border-glass-border text-muted-foreground hover:text-foreground hover:bg-glass-bg cursor-pointer rounded-full border px-4 py-2 text-sm backdrop-blur-xl transition-all duration-200"
         >
           Back to Tasks
