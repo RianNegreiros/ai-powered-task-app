@@ -1,4 +1,4 @@
-package br.com.riannegreiros.AiTaskApp.tags.model.repository;
+package br.com.riannegreiros.AiTaskApp.tags.repository;
 
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
