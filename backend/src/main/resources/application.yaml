@@ -16,6 +16,13 @@ spring:
     baseline-on-migrate: true
     validate-on-migrate: true
     table: flyway_schema_history
+  ai:
+    openai:
+      api-key: ${OPENROUTER_API_KEY}
+      base-url: https://openrouter.ai/api
+      chat:
+        options:
+          model: google/gemma-3-4b-it:free
 
 jwt:
   public:

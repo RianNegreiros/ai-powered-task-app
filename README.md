@@ -55,10 +55,10 @@ DELETE /api/tasks/me/:id          # Delete todo
 PATCH  /api/tasks/me/:id          # Toggle completion
 
 ### Tags
-GET    /api/tags/me     # Get all tags created by user
-POST   /api/tags        # Create a tag for the user to use on tasks
+GET    /api/tags/me     # Get all user tags
+POST   /api/tags        # Create tag
 DELETE /api/tags/me/:id # Delete tag
 
 ### AI Reports
-GET    /api/reports/weekly     # Get latest weekly report
-POST   /api/reports/generate    # Trigger report generation (admin)
+GET    /api/reports/me          # Get user reports
+GET    /api/reports/me/latest   # Get user latest report

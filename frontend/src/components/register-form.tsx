@@ -5,10 +5,7 @@ import { GlassInput } from './glass-input'
 import { GlassButton } from './glass-button'
 import { useAuth } from './auth-context'
 import { cn } from '@/lib/utils'
-
-interface RegisterFormProps {
-  onSwitchToLogin: () => void
-}
+import { useNavigate } from 'react-router-dom'
 
 const passwordRules = [
   { label: 'At least 8 characters', test: (p: string) => p.length >= 8 },
@@ -16,7 +13,8 @@ const passwordRules = [
   { label: 'One number', test: (p: string) => /\d/.test(p) },
 ]
 
-export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
+export function RegisterForm() {
+  const navigate = useNavigate()
   const { register, isLoading, error, clearError } = useAuth()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
@@ -203,7 +201,7 @@ export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
         Already have an account?{' '}
         <button
           type="button"
-          onClick={onSwitchToLogin}
+          onClick={() => navigate('/login')}
           className="text-primary hover:text-primary/80 font-medium transition-colors"
         >
           Sign in

@@ -67,7 +67,7 @@ export function TagsPage() {
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-5 py-12 md:py-20">
       <header className="flex items-center gap-3 px-1">
         <Link
-          to="/"
+          to="/tasks"
           className="bg-glass-bg/60 border-glass-border text-muted-foreground hover:text-foreground hover:bg-glass-bg flex size-8 items-center justify-center rounded-full border backdrop-blur-xl transition-all duration-200"
           aria-label="Back to tasks"
         >

@@ -11,7 +11,7 @@ import br.com.riannegreiros.AiTaskApp.infra.exception.TagNotFoundException;
 import br.com.riannegreiros.AiTaskApp.infra.exception.TaskNotFoundException;
 import br.com.riannegreiros.AiTaskApp.infra.exception.UserNotFoundException;
 import br.com.riannegreiros.AiTaskApp.tags.model.Tag;
-import br.com.riannegreiros.AiTaskApp.tags.model.repository.TagRepository;
+import br.com.riannegreiros.AiTaskApp.tags.repository.TagRepository;
 import br.com.riannegreiros.AiTaskApp.tasks.dto.TagSummary;
 import br.com.riannegreiros.AiTaskApp.tasks.dto.TaskRequest;
 import br.com.riannegreiros.AiTaskApp.tasks.dto.TaskResponse;
@@ -52,9 +52,7 @@ public class TaskService {
 
     public List<TaskResponse> listAllUserTasks(JwtAuthenticationToken token) {
         User user = getUser(token);
-        return taskRepository.findAllByUserId(user.getId()).stream()
-                .map(this::toResponse)
-                .toList();
+        return taskRepository.findAllByUserId(user.getId()).stream().map(this::toResponse).toList();
     }
 
     public TaskResponse getTask(String taskId, JwtAuthenticationToken token) {
@@ -100,15 +98,15 @@ public class TaskService {
     }
 
     private User getUser(JwtAuthenticationToken token) {
-        return userRepository.findById(Long.parseLong(token.getName()))
-                .orElseThrow(() -> new UserNotFoundException("User not found with ID: " + token.getName()));
+        return userRepository.findById(Long.parseLong(token.getName())).orElseThrow(
+                () -> new UserNotFoundException("User not found with ID: " + token.getName()));
     }
 
     private Set<Tag> getTags(List<String> tagIds) {
         Set<Tag> tags = new HashSet<>();
         for (String tagId : tagIds) {
-            Tag tag = tagRepository.findById(Long.parseLong(tagId))
-                    .orElseThrow(() -> new TagNotFoundException("Tag does not belong to user or do not exist"));
+            Tag tag = tagRepository.findById(Long.parseLong(tagId)).orElseThrow(
+                    () -> new TagNotFoundException("Tag does not belong to user or do not exist"));
             tags.add(tag);
         }
         return tags;
@@ -117,8 +115,8 @@ public class TaskService {
     private TaskResponse toResponse(Task task) {
         return new TaskResponse(task.getId().toString(), task.getUser().getId().toString(),
                 task.getTitle(), task.getPriority(), task.getDueDate(), task.isCompleted(),
-                task.getDescription(),
-                task.getTags().stream().map(tag -> new TagSummary(tag.getId(), tag.getName())).toList(),
+                task.getDescription(), task.getTags().stream()
+                        .map(tag -> new TagSummary(tag.getId(), tag.getName())).toList(),
                 task.getCreatedAt(), task.getUpdatedAt());
     }
 }

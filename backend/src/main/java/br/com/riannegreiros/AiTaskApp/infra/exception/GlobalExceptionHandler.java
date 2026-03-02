@@ -10,6 +10,13 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler(AiServiceException.class)
+    public ResponseEntity<ErrorResponse> handleAiServiceException(AiServiceException ex) {
+        ErrorResponse error = new ErrorResponse(ex.getMessage(),
+                HttpStatus.SERVICE_UNAVAILABLE.value(), LocalDateTime.now());
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(error);
+    }
+
     @ExceptionHandler(TagNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleTagNotFound(TagNotFoundException ex) {
         ErrorResponse error = new ErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST.value(),

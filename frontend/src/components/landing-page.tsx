@@ -1,12 +1,10 @@
 import { CheckCircle2, Sparkles, Zap } from 'lucide-react'
 import { GlassPanel } from './glass-panel'
 import { GlassButton } from './glass-button'
+import { useNavigate } from 'react-router-dom'
 
-interface LandingPageProps {
-  onGetStarted: () => void
-}
-
-export function LandingPage({ onGetStarted }: LandingPageProps) {
+export function LandingPage() {
+  const navigate = useNavigate()
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-16 px-5 py-16 md:py-24">
       {/* Hero Section */}
@@ -20,7 +18,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
         <p className="text-muted-foreground max-w-2xl text-lg leading-relaxed">
           Organize your tasks with intelligent assistance. Simple, beautiful, and powerful.
         </p>
-        <GlassButton onClick={onGetStarted} className="mt-4">
+        <GlassButton onClick={() => navigate('/login')} className="mt-4">
           Get Started
         </GlassButton>
       </header>

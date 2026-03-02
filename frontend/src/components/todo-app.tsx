@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { LogOut, User, Tag as TagIcon } from 'lucide-react'
+import { LogOut, User, Tag as TagIcon, BarChart3 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
 import { GlassPanel } from './glass-panel'
@@ -162,6 +162,14 @@ export function TodoApp() {
             <p className="text-muted-foreground/70 text-sm font-medium">{dateStr}</p>
             {user && (
               <>
+                <Link
+                  to="/reports"
+                  className="bg-glass-bg/60 border-glass-border text-muted-foreground hover:text-foreground hover:bg-glass-bg flex size-8 cursor-pointer items-center justify-center rounded-full border backdrop-blur-xl transition-all duration-200"
+                  aria-label="Weekly report"
+                  title="Weekly report"
+                >
+                  <BarChart3 className="size-3.5" />
+                </Link>
                 <Link
                   to="/tags"
                   className="bg-glass-bg/60 border-glass-border text-muted-foreground hover:text-foreground hover:bg-glass-bg flex size-8 cursor-pointer items-center justify-center rounded-full border backdrop-blur-xl transition-all duration-200"

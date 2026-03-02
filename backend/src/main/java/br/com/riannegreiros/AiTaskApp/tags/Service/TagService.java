@@ -10,7 +10,7 @@ import br.com.riannegreiros.AiTaskApp.infra.exception.UserNotFoundException;
 import br.com.riannegreiros.AiTaskApp.tags.model.Tag;
 import br.com.riannegreiros.AiTaskApp.tags.model.dto.TagRequest;
 import br.com.riannegreiros.AiTaskApp.tags.model.dto.TagResponse;
-import br.com.riannegreiros.AiTaskApp.tags.model.repository.TagRepository;
+import br.com.riannegreiros.AiTaskApp.tags.repository.TagRepository;
 
 @Service
 public class TagService {
@@ -30,9 +30,7 @@ public class TagService {
 
     public List<TagResponse> listTags(JwtAuthenticationToken token) {
         User user = getUser(token);
-        return tagRepository.findAllByUserId(user.getId()).stream()
-                .map(this::toResponse)
-                .toList();
+        return tagRepository.findAllByUserId(user.getId()).stream().map(this::toResponse).toList();
     }
 
     public void deleteTag(String id, JwtAuthenticationToken token) {
@@ -41,8 +39,8 @@ public class TagService {
     }
 
     private User getUser(JwtAuthenticationToken token) {
-        return userRepository.findById(Long.parseLong(token.getName()))
-                .orElseThrow(() -> new UserNotFoundException("User not found with ID: " + token.getName()));
+        return userRepository.findById(Long.parseLong(token.getName())).orElseThrow(
+                () -> new UserNotFoundException("User not found with ID: " + token.getName()));
     }
 
     private TagResponse toResponse(Tag tag) {

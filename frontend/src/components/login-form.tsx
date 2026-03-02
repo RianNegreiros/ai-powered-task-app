@@ -4,12 +4,10 @@ import { GlassPanel } from './glass-panel'
 import { GlassInput } from './glass-input'
 import { GlassButton } from './glass-button'
 import { useAuth } from './auth-context'
+import { useNavigate } from 'react-router-dom'
 
-interface LoginFormProps {
-  onSwitchToRegister: () => void
-}
-
-export function LoginForm({ onSwitchToRegister }: LoginFormProps) {
+export function LoginForm() {
+  const navigate = useNavigate()
   const { login, isLoading, error, clearError } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -111,7 +109,7 @@ export function LoginForm({ onSwitchToRegister }: LoginFormProps) {
         {"Don't have an account? "}
         <button
           type="button"
-          onClick={onSwitchToRegister}
+          onClick={() => navigate('/register')}
           className="text-primary hover:text-primary/80 font-medium transition-colors"
         >
           Create one
