@@ -105,9 +105,9 @@ export function TodoInput({ onAdd, tags, onTagCreated }: TodoInputProps) {
           type="submit"
           disabled={!text.trim()}
           className={cn(
-            'cursor-pointer flex size-8 shrink-0 items-center justify-center rounded-full transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-40',
+            'flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-full transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-40',
             text.trim()
-              ? 'bg-primary text-primary-foreground shadow-md shadow-primary/25 hover:shadow-lg hover:shadow-primary/30 hover:brightness-110 active:scale-95'
+              ? 'bg-primary text-primary-foreground shadow-primary/25 hover:shadow-primary/30 shadow-md hover:shadow-lg hover:brightness-110 active:scale-95'
               : 'border-primary/30 text-primary/30 border-2'
           )}
           aria-label="Add todo"
@@ -128,17 +128,18 @@ export function TodoInput({ onAdd, tags, onTagCreated }: TodoInputProps) {
           type="button"
           onClick={() => setShowOptions((v) => !v)}
           className={cn(
-            'flex size-9 shrink-0 items-center justify-center rounded-full transition-all duration-200',
+            'flex shrink-0 items-center gap-1.5 rounded-full border backdrop-blur-xl transition-all duration-200',
             text.trim()
               ? showOptions || hasOptions
-                ? 'bg-primary/15 text-primary dark:bg-primary/20'
-                : 'text-muted-foreground/50 hover:text-foreground hover:bg-glass-bg/80'
-              : 'pointer-events-none opacity-0'
+                ? 'bg-primary/15 text-primary border-primary/25 dark:bg-primary/20 px-3 py-1.5'
+                : 'bg-glass-bg/60 border-glass-border text-muted-foreground hover:text-foreground hover:bg-glass-bg hover:border-primary/30 px-3 py-1.5'
+              : 'pointer-events-none border-transparent px-3 py-1.5 opacity-0'
           )}
           aria-label="Toggle options"
           disabled={!text.trim()}
         >
-          <SlidersHorizontal className="size-4" />
+          <SlidersHorizontal className="size-3.5" />
+          <span className="text-xs font-medium">Options</span>
         </button>
       </div>
 
@@ -179,7 +180,9 @@ export function TodoInput({ onAdd, tags, onTagCreated }: TodoInputProps) {
               className={cn(
                 'flex items-center gap-2 rounded-full px-3.5 py-2 text-xs font-semibold transition-all duration-200',
                 'bg-glass-bg/70 border-glass-border hover:bg-glass-bg hover:border-primary/30 border backdrop-blur-xl',
-                selectedTagIds.length > 0 ? 'text-foreground/80 border-primary/20' : 'text-muted-foreground/60'
+                selectedTagIds.length > 0
+                  ? 'text-foreground/80 border-primary/20'
+                  : 'text-muted-foreground/60'
               )}
             >
               <Tag className="size-3.5" />
@@ -258,7 +261,9 @@ export function TodoInput({ onAdd, tags, onTagCreated }: TodoInputProps) {
               className={cn(
                 'flex items-center gap-2 rounded-full px-3.5 py-2 text-xs font-semibold transition-all duration-200',
                 'bg-glass-bg/70 border-glass-border hover:bg-glass-bg hover:border-primary/30 border backdrop-blur-xl',
-                priority !== 'none' ? cn(currentPriority.color, 'border-current/20') : 'text-muted-foreground/60'
+                priority !== 'none'
+                  ? cn(currentPriority.color, 'border-current/20')
+                  : 'text-muted-foreground/60'
               )}
             >
               <Flag className="size-3.5" />
