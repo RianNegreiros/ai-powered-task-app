@@ -98,21 +98,21 @@ export function TodoInput({ onAdd, tags, onTagCreated }: TodoInputProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="px-4 py-3">
+    <form onSubmit={handleSubmit} className="px-5 py-5">
       {/* Main input row */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-4">
         <button
           type="submit"
           disabled={!text.trim()}
           className={cn(
-            'ursor-pointer flex size-[22px] shrink-0 items-center justify-center rounded-full transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-50',
+            'cursor-pointer flex size-8 shrink-0 items-center justify-center rounded-full transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-40',
             text.trim()
-              ? 'bg-primary text-primary-foreground'
-              : 'border-primary/40 text-primary/40 border-[1.5px]'
+              ? 'bg-primary text-primary-foreground shadow-md shadow-primary/25 hover:shadow-lg hover:shadow-primary/30 hover:brightness-110 active:scale-95'
+              : 'border-primary/30 text-primary/30 border-2'
           )}
           aria-label="Add todo"
         >
-          <Plus className="size-3.5" strokeWidth={2.5} />
+          <Plus className="size-4" strokeWidth={2.5} />
         </button>
 
         <input
@@ -120,7 +120,7 @@ export function TodoInput({ onAdd, tags, onTagCreated }: TodoInputProps) {
           value={text}
           onChange={(e) => setText(e.target.value)}
           placeholder="New task..."
-          className="text-foreground placeholder:text-muted-foreground/50 flex-1 cursor-text bg-transparent text-[15px] outline-none"
+          className="text-foreground placeholder:text-muted-foreground/50 flex-1 cursor-text bg-transparent text-[17px] font-medium outline-none"
         />
 
         {/* Toggle options button */}
@@ -128,25 +128,25 @@ export function TodoInput({ onAdd, tags, onTagCreated }: TodoInputProps) {
           type="button"
           onClick={() => setShowOptions((v) => !v)}
           className={cn(
-            'flex size-7 shrink-0 items-center justify-center rounded-full transition-all duration-200',
+            'flex size-9 shrink-0 items-center justify-center rounded-full transition-all duration-200',
             text.trim()
               ? showOptions || hasOptions
-                ? 'bg-primary/10 text-primary'
-                : 'text-muted-foreground/40 hover:text-muted-foreground hover:bg-glass-bg/60'
+                ? 'bg-primary/15 text-primary dark:bg-primary/20'
+                : 'text-muted-foreground/50 hover:text-foreground hover:bg-glass-bg/80'
               : 'pointer-events-none opacity-0'
           )}
           aria-label="Toggle options"
           disabled={!text.trim()}
         >
-          <SlidersHorizontal className="size-3.5" />
+          <SlidersHorizontal className="size-4" />
         </button>
       </div>
 
       {/* Description row */}
       <div
         className={cn(
-          'ml-[34px] overflow-hidden transition-all duration-300 ease-out',
-          showOptions && text.trim() ? 'mt-2 opacity-100' : 'mt-0 max-h-0 opacity-0'
+          'ml-12 overflow-hidden transition-all duration-300 ease-out',
+          showOptions && text.trim() ? 'mt-3 opacity-100' : 'mt-0 max-h-0 opacity-0'
         )}
       >
         {showOptions && text.trim() && (
@@ -156,9 +156,9 @@ export function TodoInput({ onAdd, tags, onTagCreated }: TodoInputProps) {
             placeholder="Add a description..."
             rows={2}
             className={cn(
-              'text-foreground placeholder:text-muted-foreground/40 w-full resize-none rounded-xl bg-transparent text-[13px] leading-relaxed outline-none',
-              'bg-glass-bg/40 border-glass-border/50 border px-3 py-2',
-              'focus:border-primary/30 focus:bg-glass-bg/60 transition-colors duration-200'
+              'text-foreground placeholder:text-muted-foreground/40 w-full resize-none rounded-2xl bg-transparent text-sm leading-relaxed outline-none',
+              'bg-glass-bg/40 border-glass-border/50 border px-4 py-3',
+              'focus:border-primary/40 focus:bg-glass-bg/60 transition-colors duration-200'
             )}
           />
         )}
@@ -167,8 +167,8 @@ export function TodoInput({ onAdd, tags, onTagCreated }: TodoInputProps) {
       {/* Options row - toggle via button */}
       <div
         className={cn(
-          'ml-[34px] flex flex-wrap items-center gap-2 overflow-hidden transition-all duration-300 ease-out',
-          showOptions && text.trim() ? 'mt-2 opacity-100' : 'mt-0 max-h-0 opacity-0'
+          'ml-12 flex flex-wrap items-center gap-2.5 overflow-hidden transition-all duration-300 ease-out',
+          showOptions && text.trim() ? 'mt-3 opacity-100' : 'mt-0 max-h-0 opacity-0'
         )}
       >
         {/* Tag selector */}
@@ -177,12 +177,12 @@ export function TodoInput({ onAdd, tags, onTagCreated }: TodoInputProps) {
             <button
               type="button"
               className={cn(
-                'flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium transition-all duration-200',
-                'bg-glass-bg/60 border-glass-border hover:bg-glass-bg border backdrop-blur-xl',
-                selectedTagIds.length > 0 ? 'text-foreground/60' : 'text-muted-foreground/50'
+                'flex items-center gap-2 rounded-full px-3.5 py-2 text-xs font-semibold transition-all duration-200',
+                'bg-glass-bg/70 border-glass-border hover:bg-glass-bg hover:border-primary/30 border backdrop-blur-xl',
+                selectedTagIds.length > 0 ? 'text-foreground/80 border-primary/20' : 'text-muted-foreground/60'
               )}
             >
-              <Tag className="size-3" />
+              <Tag className="size-3.5" />
               {selectedTagIds.length > 0
                 ? `${selectedTagIds.length} tag${selectedTagIds.length > 1 ? 's' : ''}`
                 : 'Tags'}
@@ -256,12 +256,12 @@ export function TodoInput({ onAdd, tags, onTagCreated }: TodoInputProps) {
             <button
               type="button"
               className={cn(
-                'flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium transition-all duration-200',
-                'bg-glass-bg/60 border-glass-border hover:bg-glass-bg border backdrop-blur-xl',
-                currentPriority.color
+                'flex items-center gap-2 rounded-full px-3.5 py-2 text-xs font-semibold transition-all duration-200',
+                'bg-glass-bg/70 border-glass-border hover:bg-glass-bg hover:border-primary/30 border backdrop-blur-xl',
+                priority !== 'none' ? cn(currentPriority.color, 'border-current/20') : 'text-muted-foreground/60'
               )}
             >
-              <Flag className="size-3" />
+              <Flag className="size-3.5" />
               {currentPriority.label}
             </button>
           </DropdownMenuTrigger>
@@ -289,12 +289,12 @@ export function TodoInput({ onAdd, tags, onTagCreated }: TodoInputProps) {
             <button
               type="button"
               className={cn(
-                'flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium transition-all duration-200',
-                'bg-glass-bg/60 border-glass-border hover:bg-glass-bg border backdrop-blur-xl',
-                dueDate ? 'text-accent' : 'text-muted-foreground/50'
+                'flex items-center gap-2 rounded-full px-3.5 py-2 text-xs font-semibold transition-all duration-200',
+                'bg-glass-bg/70 border-glass-border hover:bg-glass-bg hover:border-primary/30 border backdrop-blur-xl',
+                dueDate ? 'text-accent border-accent/20' : 'text-muted-foreground/60'
               )}
             >
-              <CalendarIcon className="size-3" />
+              <CalendarIcon className="size-3.5" />
               {dueDate
                 ? dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
                 : 'Due date'}
@@ -315,9 +315,9 @@ export function TodoInput({ onAdd, tags, onTagCreated }: TodoInputProps) {
           <button
             type="button"
             onClick={clearOptions}
-            className="text-muted-foreground/40 hover:text-muted-foreground ml-auto flex items-center gap-1 text-[11px] transition-colors duration-150"
+            className="text-muted-foreground/50 hover:text-destructive hover:bg-destructive/10 ml-auto flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-all duration-200"
           >
-            <X className="size-3" />
+            <X className="size-3.5" />
             Clear
           </button>
         )}
@@ -325,19 +325,19 @@ export function TodoInput({ onAdd, tags, onTagCreated }: TodoInputProps) {
 
       {/* Active options summary (shown when options panel is collapsed but options are set) */}
       {!showOptions && hasOptions && text.trim() && (
-        <div className="mt-1.5 ml-[34px] flex flex-wrap items-center gap-1.5">
+        <div className="mt-2 ml-12 flex flex-wrap items-center gap-2">
           {description.trim() && (
-            <span className="bg-foreground/5 text-foreground/50 dark:bg-foreground/8 dark:text-foreground/60 inline-flex max-w-[180px] truncate rounded-full px-2 py-0.5 text-[10px] font-medium italic">
+            <span className="bg-foreground/5 text-foreground/50 dark:bg-foreground/8 dark:text-foreground/60 inline-flex max-w-[200px] truncate rounded-full px-2.5 py-1 text-[11px] font-medium italic">
               {description.trim()}
             </span>
           )}
           {selectedTags.map((tag) => (
             <span
               key={tag.id}
-              className="bg-foreground/5 text-foreground/60 dark:bg-foreground/8 dark:text-foreground/70 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium"
+              className="bg-foreground/5 text-foreground/60 dark:bg-foreground/8 dark:text-foreground/70 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium"
             >
               <span
-                className="size-1.5 shrink-0 rounded-full"
+                className="size-2 shrink-0 rounded-full"
                 style={{ backgroundColor: `oklch(0.65 0.18 ${tagHue(tag.name)})` }}
               />
               {tag.name}
@@ -346,7 +346,7 @@ export function TodoInput({ onAdd, tags, onTagCreated }: TodoInputProps) {
           {priority !== 'none' && (
             <span
               className={cn(
-                'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium',
+                'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold',
                 priority === 'low'
                   ? 'bg-sky-500/10 dark:bg-sky-400/15'
                   : priority === 'medium'
@@ -357,13 +357,13 @@ export function TodoInput({ onAdd, tags, onTagCreated }: TodoInputProps) {
                 currentPriority.color
               )}
             >
-              <Flag className="size-2" />
+              <Flag className="size-2.5" />
               {currentPriority.label}
             </span>
           )}
           {dueDate && (
-            <span className="bg-accent/10 text-accent inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium">
-              <CalendarIcon className="size-2" />
+            <span className="bg-accent/10 text-accent inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold">
+              <CalendarIcon className="size-2.5" />
               {dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
             </span>
           )}

@@ -164,35 +164,35 @@ export function TodoApp() {
               <>
                 <Link
                   to="/reports"
-                  className="bg-glass-bg/60 border-glass-border text-muted-foreground hover:text-foreground hover:bg-glass-bg flex size-8 cursor-pointer items-center justify-center rounded-full border backdrop-blur-xl transition-all duration-200"
+                  className="bg-glass-bg/60 border-glass-border text-muted-foreground hover:text-foreground hover:bg-glass-bg hover:border-primary/30 hover:shadow-sm flex size-9 cursor-pointer items-center justify-center rounded-full border backdrop-blur-xl transition-all duration-200"
                   aria-label="Weekly report"
                   title="Weekly report"
                 >
-                  <BarChart3 className="size-3.5" />
+                  <BarChart3 className="size-4" />
                 </Link>
                 <Link
                   to="/tags"
-                  className="bg-glass-bg/60 border-glass-border text-muted-foreground hover:text-foreground hover:bg-glass-bg flex size-8 cursor-pointer items-center justify-center rounded-full border backdrop-blur-xl transition-all duration-200"
+                  className="bg-glass-bg/60 border-glass-border text-muted-foreground hover:text-foreground hover:bg-glass-bg hover:border-primary/30 hover:shadow-sm flex size-9 cursor-pointer items-center justify-center rounded-full border backdrop-blur-xl transition-all duration-200"
                   aria-label="Manage tags"
                   title="Manage tags"
                 >
-                  <TagIcon className="size-3.5" />
+                  <TagIcon className="size-4" />
                 </Link>
                 <Link
                   to="/profile"
-                  className="bg-glass-bg/60 border-glass-border text-muted-foreground hover:text-foreground hover:bg-glass-bg flex size-8 cursor-pointer items-center justify-center rounded-full border backdrop-blur-xl transition-all duration-200"
+                  className="bg-glass-bg/60 border-glass-border text-muted-foreground hover:text-foreground hover:bg-glass-bg hover:border-primary/30 hover:shadow-sm flex size-9 cursor-pointer items-center justify-center rounded-full border backdrop-blur-xl transition-all duration-200"
                   aria-label="Profile"
                   title="Profile"
                 >
-                  <User className="size-3.5" />
+                  <User className="size-4" />
                 </Link>
                 <button
                   onClick={logout}
-                  className="bg-glass-bg/60 border-glass-border text-muted-foreground hover:text-foreground hover:bg-glass-bg flex size-8 cursor-pointer items-center justify-center rounded-full border backdrop-blur-xl transition-all duration-200"
+                  className="bg-glass-bg/60 border-glass-border text-muted-foreground hover:text-destructive hover:bg-destructive/10 hover:border-destructive/30 flex size-9 cursor-pointer items-center justify-center rounded-full border backdrop-blur-xl transition-all duration-200"
                   aria-label="Sign out"
                   title="Sign out"
                 >
-                  <LogOut className="size-3.5" />
+                  <LogOut className="size-4" />
                 </button>
               </>
             )}
