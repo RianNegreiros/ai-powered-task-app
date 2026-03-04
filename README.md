@@ -30,7 +30,6 @@ Infrastructure:
   - Orchestration: Docker Compose (dev)
 
 ## User Stories
-
 - As a user, I want to create an account so my tasks are private
 - As a user, I want to create, edit, and delete tasks
 - As a user, I want to mark tasks as complete
@@ -44,24 +43,48 @@ Infrastructure:
 
 ## REST Endpoints
 
-### Authentication
-POST   /api/auth/register
-POST   /api/auth/login
-POST   /api/auth/refresh-token
+Base path:
 
-### tasks
-GET    /api/tasks/me              # List with pagination & filters
-GET    /api/tasks/me/:id          # Get single todo
-POST   /api/tasks                 # Create todo
-PUT    /api/tasks/me/:id          # Update todo
-DELETE /api/tasks/me/:id          # Delete todo
-PATCH  /api/tasks/me/:id          # Toggle completion
+```
+/api
+```
+
+### Authentication
+
+```
+POST   /auth/register
+POST   /auth/login
+POST   /auth/refresh-token
+```
+
+### Tasks
+
+```
+GET    /tasks/me
+GET    /tasks/me/{id}
+POST   /tasks
+PUT    /tasks/me/{id}
+PATCH  /tasks/me/{id}
+DELETE /tasks/me/{id}
+```
 
 ### Tags
-GET    /api/tags/me     # Get all user tags
-POST   /api/tags        # Create tag
-DELETE /api/tags/me/:id # Delete tag
+
+```
+GET    /tags/me
+POST   /tags
+DELETE /tags/me/{id}
+```
 
 ### AI Reports
-GET    /api/reports/me          # Get user reports
-GET    /api/reports/me/latest   # Get user latest report
+
+```
+GET    /reports/me
+GET    /reports/me/latest
+```
+
+All endpoints (except `/auth/**`) require a valid JWT:
+
+```
+Authorization: Bearer <token>
+```
