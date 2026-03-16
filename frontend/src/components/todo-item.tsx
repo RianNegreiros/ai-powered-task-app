@@ -1,82 +1,18 @@
-import { useState, useRef, useEffect } from 'react'
-import { X, Calendar as CalendarIcon, Flag, Tag, Pencil, Check, FileText } from 'lucide-react'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { Calendar } from '@/components/ui/calendar'
-import { cn } from '@/lib/utils'
-import { priorityOptions } from './priority-config'
+import { useState } from 'react'
+import { X, Calendar as CalendarIcon, Flag, Pencil, FileText } from 'lucide-react'
+import { cn, tagHue } from '@/lib/utils'
+import { PRIORITY_CONFIG } from '@/config/priority'
+import { TodoItemEdit } from './todo-item-edit'
+import type { Task } from '@/types/task'
 import type { Tag as TagEntity } from '@/lib/api-tags'
 
-export type Priority = 'low' | 'medium' | 'high' | 'critical' | 'none'
-
-export interface TaskTag {
-  id: number
-  name: string
-}
-
-export interface Task {
-  id: string
-  title: string
-  description: string | null
-  completed: boolean
-  createdAt: Date
-  priority: Priority
-  dueDate: Date | null
-  tags: TaskTag[]
-}
-
-const priorityConfig: Record<
-  Priority,
-  { color: string; ringColor: string; bgColor: string; label: string; stripColor: string }
-> = {
-  critical: {
-    color: 'text-rose-600 dark:text-rose-400',
-    ringColor: 'border-rose-500/70 dark:border-rose-400/60',
-    bgColor: 'bg-rose-500/10 dark:bg-rose-400/15',
-    label: 'Critical',
-    stripColor: 'bg-rose-500/70 dark:bg-rose-400/60',
-  },
-  high: {
-    color: 'text-red-500 dark:text-red-400',
-    ringColor: 'border-red-400/60 dark:border-red-400/50',
-    bgColor: 'bg-red-500/10 dark:bg-red-400/15',
-    label: 'High',
-    stripColor: 'bg-red-400/60 dark:bg-red-400/50',
-  },
-  medium: {
-    color: 'text-amber-500 dark:text-amber-400',
-    ringColor: 'border-amber-400/60 dark:border-amber-400/50',
-    bgColor: 'bg-amber-500/10 dark:bg-amber-400/15',
-    label: 'Medium',
-    stripColor: 'bg-amber-400/60 dark:bg-amber-400/50',
-  },
-  low: {
-    color: 'text-sky-500 dark:text-sky-400',
-    ringColor: 'border-sky-400/60 dark:border-sky-400/50',
-    bgColor: 'bg-sky-500/10 dark:bg-sky-400/15',
-    label: 'Low',
-    stripColor: 'bg-sky-400/50 dark:bg-sky-400/40',
-  },
-  none: {
-    color: 'text-muted-foreground/40',
-    ringColor: 'border-foreground/20',
-    bgColor: '',
-    label: 'None',
-    stripColor: '',
-  },
-}
+export type { Priority, TaskTag, Task } from '@/types/task'
 
 function formatDueDate(date: Date): { label: string; isOverdue: boolean; isSoon: boolean } {
-  const now = new Date()
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
   const due = new Date(date.getFullYear(), date.getMonth(), date.getDate())
-  const diffMs = due.getTime() - today.getTime()
-  const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24))
+  const diffDays = Math.round((due.getTime() - today.getTime()) / 86_400_000)
 
   if (diffDays < 0)
     return { label: `${Math.abs(diffDays)}d overdue`, isOverdue: true, isSoon: false }
@@ -90,13 +26,6 @@ function formatDueDate(date: Date): { label: string; isOverdue: boolean; isSoon:
   }
 }
 
-// Deterministic hue from tag name for colored dots
-function tagHue(name: string): number {
-  let hash = 0
-  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash)
-  return Math.abs(hash) % 360
-}
-
 interface TodoItemProps {
   todo: Task
   onToggle: (id: string) => void
@@ -107,26 +36,23 @@ interface TodoItemProps {
   ) => void
   index: number
   tags: TagEntity[]
+  compact?: boolean
 }
 
-export function TodoItem({ todo, onToggle, onDelete, onUpdate, index, tags }: TodoItemProps) {
+export function TodoItem({
+  todo,
+  onToggle,
+  onDelete,
+  onUpdate,
+  index,
+  tags,
+  compact = false,
+}: TodoItemProps) {
   const [isDeleting, setIsDeleting] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
   const [completionFlash, setCompletionFlash] = useState(false)
 
-  // Edit form state
-  const [editTitle, setEditTitle] = useState(todo.title)
-  const [editDescription, setEditDescription] = useState(todo.description ?? '')
-  const [editPriority, setEditPriority] = useState<Priority>(todo.priority)
-  const [editDueDate, setEditDueDate] = useState<Date | undefined>(
-    todo.dueDate instanceof Date && !isNaN(todo.dueDate.getTime()) ? todo.dueDate : undefined
-  )
-  const [editTagIds, setEditTagIds] = useState<string[]>(todo.tags.map((t) => t.id.toString()))
-
-  const editTitleRef = useRef<HTMLInputElement>(null)
-
-  const pCfg = priorityConfig[todo.priority] || priorityConfig.none
-
+  const pCfg = PRIORITY_CONFIG[todo.priority] ?? PRIORITY_CONFIG.none
   const due =
     todo.dueDate instanceof Date && !isNaN(todo.dueDate.getTime())
       ? formatDueDate(todo.dueDate)
@@ -137,243 +63,36 @@ export function TodoItem({ todo, onToggle, onDelete, onUpdate, index, tags }: To
     setTimeout(() => onDelete(todo.id), 280)
   }
 
-  const handleStartEdit = () => {
-    setEditTitle(todo.title)
-    setEditDescription(todo.description ?? '')
-    setEditPriority(todo.priority)
-    setEditDueDate(
-      todo.dueDate instanceof Date && !isNaN(todo.dueDate.getTime()) ? todo.dueDate : undefined
-    )
-    setEditTagIds(todo.tags.map((t) => t.id.toString()))
-    setIsEditing(true)
-  }
-
-  const handleCancelEdit = () => {
-    setIsEditing(false)
-  }
-
-  const handleSaveEdit = () => {
-    if (!editTitle.trim()) return
-    const selectedTags = tags
-      .filter((t) => editTagIds.includes(t.id))
-      .map((t) => ({ id: parseInt(t.id), name: t.name }))
-    onUpdate(todo.id, {
-      title: editTitle.trim(),
-      description: editDescription.trim() || null,
-      priority: editPriority,
-      dueDate: editDueDate || null,
-      tags: selectedTags,
-    })
-    setIsEditing(false)
-  }
-
-  const handleEditKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Escape') handleCancelEdit()
-    if (e.key === 'Enter' && !e.shiftKey && (e.target as HTMLElement).tagName !== 'TEXTAREA') {
-      e.preventDefault()
-      handleSaveEdit()
+  const handleToggle = () => {
+    if (!todo.completed) {
+      setCompletionFlash(true)
+      setTimeout(() => setCompletionFlash(false), 700)
     }
+    onToggle(todo.id)
   }
 
-  useEffect(() => {
-    if (isEditing && editTitleRef.current) {
-      editTitleRef.current.focus()
-      editTitleRef.current.select()
-    }
-  }, [isEditing])
-
-  const currentEditPriority = priorityOptions.find((p) => p.value === editPriority)!
-
-  // ── Edit mode ──
   if (isEditing) {
     return (
-      <div
-        className={cn(
-          'animate-slide-up flex flex-col gap-4 px-5 py-5',
-          'border-glass-border/60 border-b last:border-b-0',
-          'bg-primary/5 dark:bg-primary/8',
-          'shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)]'
-        )}
-        style={{ animationDelay: `${index * 40}ms` }}
-        onKeyDown={handleEditKeyDown}
-      >
-        {/* Title input */}
-        <input
-          ref={editTitleRef}
-          type="text"
-          value={editTitle}
-          onChange={(e) => setEditTitle(e.target.value)}
-          placeholder="Task title..."
-          className={cn(
-            'text-foreground placeholder:text-muted-foreground/60 w-full bg-transparent text-base leading-relaxed font-semibold outline-none',
-            'focus:placeholder:text-muted-foreground/70 transition-colors'
-          )}
-        />
-
-        {/* Description textarea */}
-        <textarea
-          value={editDescription}
-          onChange={(e) => setEditDescription(e.target.value)}
-          placeholder="Add a description..."
-          rows={2}
-          className={cn(
-            'text-foreground placeholder:text-muted-foreground/50 w-full resize-none rounded-xl bg-transparent text-sm leading-relaxed outline-none',
-            'bg-glass-bg/50 border-glass-border/60 border px-4 py-3',
-            'focus:border-primary/40 focus:bg-glass-bg/70 transition-all duration-200',
-            'dark:focus:shadow-[0_0_0_3px_var(--primary)/0.1]'
-          )}
-        />
-
-        {/* Options row */}
-        <div className="flex flex-wrap items-center gap-2.5 pt-0.5">
-          {/* Tag selector */}
-          <Popover>
-            <PopoverTrigger asChild>
-              <button
-                type="button"
-                className={cn(
-                  'flex items-center gap-2 rounded-full px-3 py-2 text-xs font-semibold transition-all duration-200',
-                  'bg-glass-bg/70 border-glass-border/60 hover:border-glass-border hover:bg-glass-bg border backdrop-blur-xl',
-                  editTagIds.length > 0 ? 'text-foreground/80' : 'text-muted-foreground/50'
-                )}
-              >
-                <Tag className="size-3.5" />
-                {editTagIds.length > 0
-                  ? `${editTagIds.length} tag${editTagIds.length > 1 ? 's' : ''}`
-                  : 'Tags'}
-              </button>
-            </PopoverTrigger>
-            <PopoverContent align="start" className="w-52 p-2">
-              <div className="max-h-60 space-y-1 overflow-y-auto">
-                {tags.map((t) => (
-                  <button
-                    key={t.id}
-                    type="button"
-                    onClick={() =>
-                      setEditTagIds((prev) =>
-                        prev.includes(t.id) ? prev.filter((id) => id !== t.id) : [...prev, t.id]
-                      )
-                    }
-                    className="hover:bg-accent flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors"
-                  >
-                    <div
-                      className={cn(
-                        'flex size-4 items-center justify-center rounded border',
-                        editTagIds.includes(t.id) ? 'bg-primary border-primary' : 'border-input'
-                      )}
-                    >
-                      {editTagIds.includes(t.id) && (
-                        <Check className="text-primary-foreground size-3" />
-                      )}
-                    </div>
-                    <span className="flex-1 text-left">{t.name}</span>
-                  </button>
-                ))}
-              </div>
-            </PopoverContent>
-          </Popover>
-
-          {/* Priority picker */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button
-                type="button"
-                className={cn(
-                  'flex items-center gap-2 rounded-full px-3 py-2 text-xs font-semibold transition-all duration-200',
-                  'bg-glass-bg/70 border-glass-border/60 hover:border-glass-border hover:bg-glass-bg border backdrop-blur-xl',
-                  currentEditPriority.color
-                )}
-              >
-                <Flag className="size-3.5" />
-                {currentEditPriority.label}
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-40">
-              {priorityOptions.map((opt) => (
-                <DropdownMenuItem
-                  key={opt.value}
-                  onClick={() => setEditPriority(opt.value)}
-                  className={cn(
-                    'flex cursor-pointer items-center gap-2.5 text-sm',
-                    editPriority === opt.value ? opt.color : 'text-foreground/80'
-                  )}
-                >
-                  <span className={cn('size-2.5 shrink-0 rounded-full', opt.dot)} />
-                  {opt.label}
-                  {editPriority === opt.value && <Check className="text-primary ml-auto size-4" />}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          {/* Due date picker */}
-          <Popover>
-            <PopoverTrigger asChild>
-              <button
-                type="button"
-                className={cn(
-                  'flex items-center gap-2 rounded-full px-3 py-2 text-xs font-semibold transition-all duration-200',
-                  'bg-glass-bg/70 border-glass-border/60 hover:border-glass-border hover:bg-glass-bg border backdrop-blur-xl',
-                  editDueDate ? 'text-accent dark:text-accent' : 'text-muted-foreground/70'
-                )}
-              >
-                <CalendarIcon className="size-3.5" />
-                {editDueDate
-                  ? editDueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-                  : 'Due date'}
-              </button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="single"
-                selected={editDueDate}
-                onSelect={setEditDueDate}
-                disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
-              />
-            </PopoverContent>
-          </Popover>
-        </div>
-
-        {/* Save / Cancel row */}
-        <div className="flex items-center justify-end gap-3 pt-1">
-          <button
-            type="button"
-            onClick={handleCancelEdit}
-            className={cn(
-              'flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium transition-all duration-200',
-              'text-foreground/70 hover:text-foreground hover:bg-glass-bg/70'
-            )}
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            onClick={handleSaveEdit}
-            disabled={!editTitle.trim()}
-            className={cn(
-              'flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold transition-all duration-200',
-              'bg-primary text-primary-foreground shadow-sm',
-              'hover:brightness-110 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:brightness-100',
-              'dark:shadow-[0_2px_16px_var(--primary)/0.25]'
-            )}
-          >
-            <Check className="size-4" />
-            Save
-          </button>
-        </div>
-      </div>
+      <TodoItemEdit
+        todo={todo}
+        tags={tags}
+        index={index}
+        onSave={(updates) => {
+          onUpdate(todo.id, updates)
+          setIsEditing(false)
+        }}
+        onCancel={() => setIsEditing(false)}
+      />
     )
   }
 
-  // ── Read mode ──
-  const isOverdue = due?.isOverdue ?? false
   return (
     <div
       className={cn(
-        'group animate-slide-up relative flex items-start gap-4 px-5 py-4',
-        'transition-all duration-300 ease-out',
-        'border-glass-border/50 border-b last:border-b-0',
-        isOverdue
+        'group animate-slide-up relative flex items-start gap-3 transition-all duration-300 ease-out',
+        compact ? 'px-3 py-3' : 'px-5 py-4',
+        !compact && 'border-glass-border/50 border-b last:border-b-0',
+        due?.isOverdue
           ? 'hover:bg-red-500/5 dark:hover:bg-red-400/5'
           : 'hover:bg-foreground/2 dark:hover:bg-foreground/3',
         completionFlash && 'animate-completion-flash',
@@ -381,23 +100,19 @@ export function TodoItem({ todo, onToggle, onDelete, onUpdate, index, tags }: To
       )}
       style={{ animationDelay: `${index * 40}ms` }}
     >
-      {/* Priority left strip */}
-      {todo.priority !== 'none' && !todo.completed && (
+      {/* Priority strip (list mode only) */}
+      {!compact && todo.priority !== 'none' && !todo.completed && (
         <div
-          className={cn('absolute top-3 bottom-3 left-0 w-[3px] rounded-full', pCfg.stripColor)}
+          className={cn('absolute top-3 bottom-3 left-0 w-0.75 rounded-full', pCfg.stripColor)}
         />
       )}
+
       {/* Checkbox */}
       <button
-        onClick={() => {
-          if (!todo.completed) {
-            setCompletionFlash(true)
-            setTimeout(() => setCompletionFlash(false), 700)
-          }
-          onToggle(todo.id)
-        }}
+        onClick={handleToggle}
         className={cn(
-          'relative mt-1 flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-full transition-all duration-300',
+          'relative mt-0.5 flex shrink-0 cursor-pointer items-center justify-center rounded-full transition-all duration-300',
+          compact ? 'size-5' : 'size-6',
           todo.completed
             ? 'bg-primary dark:shadow-[0_0_8px_var(--primary)/0.3]'
             : cn('hover:border-primary/50 border-2', pCfg.ringColor)
@@ -425,7 +140,7 @@ export function TodoItem({ todo, onToggle, onDelete, onUpdate, index, tags }: To
       {/* Content */}
       <div
         className="flex min-w-0 flex-1 cursor-pointer flex-col gap-1.5"
-        onClick={!todo.completed ? handleStartEdit : undefined}
+        onClick={!todo.completed ? () => setIsEditing(true) : undefined}
         role={!todo.completed ? 'button' : undefined}
         tabIndex={!todo.completed ? 0 : undefined}
         onKeyDown={
@@ -433,7 +148,7 @@ export function TodoItem({ todo, onToggle, onDelete, onUpdate, index, tags }: To
             ? (e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                   e.preventDefault()
-                  handleStartEdit()
+                  setIsEditing(true)
                 }
               }
             : undefined
@@ -442,7 +157,8 @@ export function TodoItem({ todo, onToggle, onDelete, onUpdate, index, tags }: To
       >
         <span
           className={cn(
-            'text-base leading-relaxed font-medium wrap-break-word transition-all duration-300',
+            'leading-relaxed font-medium wrap-break-word transition-all duration-300',
+            compact ? 'text-sm' : 'text-base',
             todo.completed
               ? 'text-muted-foreground/50 decoration-muted-foreground/30 line-through'
               : 'text-foreground'
@@ -451,93 +167,95 @@ export function TodoItem({ todo, onToggle, onDelete, onUpdate, index, tags }: To
           {todo.title}
         </span>
 
-        {/* Description preview */}
-        {todo.description && !todo.completed && (
-          <span className="text-muted-foreground dark:text-muted-foreground/70 flex items-start gap-1.5 text-[13px] leading-relaxed">
+        {todo.description && !todo.completed && !compact && (
+          <span className="text-muted-foreground flex items-start gap-1.5 text-[13px] leading-relaxed">
             <FileText className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
             <span className="line-clamp-2">{todo.description}</span>
           </span>
         )}
 
-        {/* Meta row: tag + priority badge + due date */}
-        {!todo.completed && (todo.priority !== 'none' || due || todo.tags.length > 0) && (
-          <div className="mt-0.5 flex flex-wrap items-center gap-2">
-            {todo.tags.map((tag) => {
-              const hue = tagHue(tag.name)
-              return (
+        {!todo.completed &&
+          ((!compact && todo.priority !== 'none') || due || todo.tags.length > 0) && (
+            <div
+              className={cn('mt-0.5 flex flex-wrap items-center', compact ? 'gap-1.5' : 'gap-2')}
+            >
+              {todo.tags.map((tag) => (
                 <span
                   key={tag.id}
-                  className="bg-foreground/8 text-foreground/80 dark:bg-foreground/10 dark:text-foreground/80 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium"
+                  className={cn(
+                    'bg-foreground/8 text-foreground/80 dark:bg-foreground/10 inline-flex items-center gap-1 rounded-full font-medium',
+                    compact ? 'px-2 py-0.5 text-[10px]' : 'gap-1.5 px-2.5 py-1 text-xs'
+                  )}
                 >
                   <span
-                    className="size-2 shrink-0 rounded-full"
-                    style={{ backgroundColor: `oklch(0.65 0.18 ${hue})` }}
+                    className={cn('shrink-0 rounded-full', compact ? 'size-1.5' : 'size-2')}
+                    style={{ backgroundColor: `oklch(0.65 0.18 ${tagHue(tag.name)})` }}
                     aria-hidden="true"
                   />
-                  <span>{tag.name}</span>
+                  {tag.name}
                 </span>
-              )
-            })}
-            {todo.priority !== 'none' && (
-              <span
-                className={cn(
-                  'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold',
-                  pCfg.bgColor,
-                  pCfg.color
-                )}
-              >
-                <Flag className="size-3" aria-hidden="true" />
-                <span>{pCfg.label}</span>
-              </span>
-            )}
-            {due && (
-              <span
-                className={cn(
-                  'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold',
-                  due.isOverdue
-                    ? 'bg-red-500/15 text-red-600 dark:bg-red-400/20 dark:text-red-400'
-                    : due.isSoon
-                      ? 'bg-amber-500/15 text-amber-600 dark:bg-amber-400/20 dark:text-amber-400'
-                      : 'bg-glass-bg text-muted-foreground'
-                )}
-              >
-                <CalendarIcon className="size-3" aria-hidden="true" />
-                <span>{due.label}</span>
-              </span>
-            )}
-          </div>
-        )}
+              ))}
+
+              {!compact && todo.priority !== 'none' && (
+                <span
+                  className={cn(
+                    'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold',
+                    pCfg.bgColor,
+                    pCfg.color
+                  )}
+                >
+                  <Flag className="size-3" aria-hidden="true" />
+                  {pCfg.label}
+                </span>
+              )}
+
+              {due && (
+                <span
+                  className={cn(
+                    'inline-flex items-center rounded-full font-semibold',
+                    compact ? 'gap-1 px-2 py-0.5 text-[10px]' : 'gap-1.5 px-2.5 py-1 text-xs',
+                    due.isOverdue
+                      ? 'bg-red-500/15 text-red-600 dark:bg-red-400/20 dark:text-red-400'
+                      : due.isSoon
+                        ? 'bg-amber-500/15 text-amber-600 dark:bg-amber-400/20 dark:text-amber-400'
+                        : 'bg-glass-bg text-muted-foreground'
+                  )}
+                >
+                  <CalendarIcon className={compact ? 'size-2.5' : 'size-3'} aria-hidden="true" />
+                  {due.label}
+                </span>
+              )}
+            </div>
+          )}
       </div>
 
       {/* Actions */}
-      <div className="mt-1 flex shrink-0 items-center gap-1">
-        {/* Edit button */}
+      <div className={cn('flex shrink-0 items-center gap-0.5', compact ? 'mt-0' : 'mt-1')}>
         {!todo.completed && (
           <button
-            onClick={handleStartEdit}
+            onClick={() => setIsEditing(true)}
             className={cn(
-              'flex size-8 cursor-pointer items-center justify-center rounded-full transition-all duration-200',
+              'flex cursor-pointer items-center justify-center rounded-full transition-all duration-200',
+              compact ? 'size-6' : 'size-8',
               'opacity-0 group-hover:opacity-100 focus:opacity-100',
-              'text-muted-foreground hover:text-primary hover:bg-primary/10',
-              'focus:ring-primary/40 focus:ring-2 focus:outline-none'
+              'text-muted-foreground hover:text-primary hover:bg-primary/10 focus:ring-primary/40 focus:ring-2 focus:outline-none'
             )}
             aria-label={`Edit task: ${todo.title}`}
           >
-            <Pencil className="size-4" aria-hidden="true" />
+            <Pencil className={compact ? 'size-3' : 'size-4'} aria-hidden="true" />
           </button>
         )}
-        {/* Delete button */}
         <button
           onClick={handleDelete}
           className={cn(
-            'flex size-8 cursor-pointer items-center justify-center rounded-full transition-all duration-200',
+            'flex cursor-pointer items-center justify-center rounded-full transition-all duration-200',
+            compact ? 'size-6' : 'size-8',
             'opacity-0 group-hover:opacity-100 focus:opacity-100',
-            'text-muted-foreground hover:text-destructive hover:bg-destructive/10',
-            'focus:ring-destructive/40 focus:ring-2 focus:outline-none'
+            'text-muted-foreground hover:text-destructive hover:bg-destructive/10 focus:ring-destructive/40 focus:ring-2 focus:outline-none'
           )}
-          aria-label={`Delete todo: ${todo.title}`}
+          aria-label={`Delete task: ${todo.title}`}
         >
-          <X className="size-4.5" aria-hidden="true" />
+          <X className={compact ? 'size-3.5' : 'size-4.5'} aria-hidden="true" />
         </button>
       </div>
     </div>

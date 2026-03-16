@@ -1,14 +1,5 @@
-import { useState, useRef } from 'react'
-import {
-  Plus,
-  Flag,
-  Calendar as CalendarIcon,
-  SlidersHorizontal,
-  Tag,
-  X,
-  Check,
-  Loader2,
-} from 'lucide-react'
+import { useState } from 'react'
+import { Plus, Flag, Calendar as CalendarIcon, SlidersHorizontal, X, Check } from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,16 +9,10 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Calendar } from '@/components/ui/calendar'
 import { cn } from '@/lib/utils'
-import { priorityOptions } from './priority-config'
-import type { Priority, TaskTag } from './todo-item'
+import { PRIORITY_OPTIONS } from '@/config/priority'
+import { TagSelector } from './tag-selector'
+import type { Priority, TaskTag } from '@/types/task'
 import type { Tag as TagEntity } from '@/lib/api-tags'
-import { createTag } from '@/lib/api-tags'
-
-function tagHue(name: string): number {
-  let hash = 0
-  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash)
-  return Math.abs(hash) % 360
-}
 
 interface TodoInputProps {
   onAdd: (
@@ -48,27 +33,24 @@ export function TodoInput({ onAdd, tags, onTagCreated }: TodoInputProps) {
   const [dueDate, setDueDate] = useState<Date | undefined>()
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([])
   const [showOptions, setShowOptions] = useState(false)
-  const [newTagName, setNewTagName] = useState('')
-  const [isCreatingTag, setIsCreatingTag] = useState(false)
-  const newTagInputRef = useRef<HTMLInputElement>(null)
 
-  const currentPriority = priorityOptions.find((p) => p.value === priority)!
+  const currentPriority = PRIORITY_OPTIONS.find((p) => p.value === priority)!
   const selectedTags = tags.filter((t) => selectedTagIds.includes(t.id))
   const hasOptions =
     priority !== 'none' || dueDate || selectedTagIds.length > 0 || description.trim() !== ''
+  const showPanel = showOptions && text.trim()
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (text.trim()) {
-      const taskTags = selectedTags.map((t) => ({ id: parseInt(t.id), name: t.name }))
-      onAdd(text.trim(), priority, dueDate || null, taskTags, description.trim() || null)
-      setText('')
-      setDescription('')
-      setPriority('none')
-      setDueDate(undefined)
-      setSelectedTagIds([])
-      setShowOptions(false)
-    }
+    if (!text.trim()) return
+    const taskTags = selectedTags.map((t) => ({ id: parseInt(t.id), name: t.name }))
+    onAdd(text.trim(), priority, dueDate ?? null, taskTags, description.trim() || null)
+    setText('')
+    setDescription('')
+    setPriority('none')
+    setDueDate(undefined)
+    setSelectedTagIds([])
+    setShowOptions(false)
   }
 
   const clearOptions = () => {
@@ -78,28 +60,9 @@ export function TodoInput({ onAdd, tags, onTagCreated }: TodoInputProps) {
     setSelectedTagIds([])
   }
 
-  const handleCreateTag = async (e: React.FormEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    const trimmed = newTagName.trim()
-    if (!trimmed || isCreatingTag) return
-    setIsCreatingTag(true)
-    try {
-      const tag = await createTag(trimmed)
-      onTagCreated?.(tag)
-      setSelectedTagIds((prev) => [...prev, tag.id])
-      setNewTagName('')
-      newTagInputRef.current?.focus()
-    } catch {
-      // silently fail — parent toast handles errors
-    } finally {
-      setIsCreatingTag(false)
-    }
-  }
-
   return (
     <form onSubmit={handleSubmit} className="px-5 py-5">
-      {/* Main input row */}
+      {/* Main row */}
       <div className="flex items-center gap-4">
         <button
           type="submit"
@@ -110,7 +73,7 @@ export function TodoInput({ onAdd, tags, onTagCreated }: TodoInputProps) {
               ? 'bg-primary text-primary-foreground shadow-primary/25 hover:shadow-primary/30 shadow-md hover:shadow-lg hover:brightness-110 active:scale-95'
               : 'border-primary/30 text-primary/30 border-2'
           )}
-          aria-label="Add todo"
+          aria-label="Add task"
         >
           <Plus className="size-4" strokeWidth={2.5} />
         </button>
@@ -120,37 +83,31 @@ export function TodoInput({ onAdd, tags, onTagCreated }: TodoInputProps) {
           value={text}
           onChange={(e) => setText(e.target.value)}
           placeholder="New task..."
-          className="text-foreground placeholder:text-muted-foreground/50 flex-1 cursor-text bg-transparent text-[17px] font-medium outline-none"
+          className="text-foreground placeholder:text-muted-foreground/50 flex-1 bg-transparent text-[17px] font-medium outline-none"
         />
 
-        {/* Toggle options button */}
         <button
           type="button"
           onClick={() => setShowOptions((v) => !v)}
+          disabled={!text.trim()}
           className={cn(
-            'flex shrink-0 items-center gap-1.5 rounded-full border backdrop-blur-xl transition-all duration-200',
+            'flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 backdrop-blur-xl transition-all duration-200',
             text.trim()
               ? showOptions || hasOptions
-                ? 'bg-primary/15 text-primary border-primary/25 dark:bg-primary/20 px-3 py-1.5'
-                : 'bg-glass-bg/60 border-glass-border text-muted-foreground hover:text-foreground hover:bg-glass-bg hover:border-primary/30 px-3 py-1.5'
-              : 'pointer-events-none border-transparent px-3 py-1.5 opacity-0'
+                ? 'bg-primary/15 text-primary border-primary/25 dark:bg-primary/20'
+                : 'bg-glass-bg/60 border-glass-border text-muted-foreground hover:text-foreground hover:bg-glass-bg hover:border-primary/30'
+              : 'pointer-events-none border-transparent opacity-0'
           )}
           aria-label="Toggle options"
-          disabled={!text.trim()}
         >
           <SlidersHorizontal className="size-3.5" />
           <span className="text-xs font-medium">Options</span>
         </button>
       </div>
 
-      {/* Description row */}
-      <div
-        className={cn(
-          'ml-12 overflow-hidden transition-all duration-300 ease-out',
-          showOptions && text.trim() ? 'mt-3 opacity-100' : 'mt-0 max-h-0 opacity-0'
-        )}
-      >
-        {showOptions && text.trim() && (
+      {/* Options panel */}
+      {showPanel && (
+        <div className="mt-3 ml-12 flex flex-col gap-3">
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
@@ -162,189 +119,102 @@ export function TodoInput({ onAdd, tags, onTagCreated }: TodoInputProps) {
               'focus:border-primary/40 focus:bg-glass-bg/60 transition-colors duration-200'
             )}
           />
-        )}
-      </div>
 
-      {/* Options row - toggle via button */}
-      <div
-        className={cn(
-          'ml-12 flex flex-wrap items-center gap-2.5 overflow-hidden transition-all duration-300 ease-out',
-          showOptions && text.trim() ? 'mt-3 opacity-100' : 'mt-0 max-h-0 opacity-0'
-        )}
-      >
-        {/* Tag selector */}
-        <Popover>
-          <PopoverTrigger asChild>
-            <button
-              type="button"
-              className={cn(
-                'flex items-center gap-2 rounded-full px-3.5 py-2 text-xs font-semibold transition-all duration-200',
-                'bg-glass-bg/70 border-glass-border hover:bg-glass-bg hover:border-primary/30 border backdrop-blur-xl',
-                selectedTagIds.length > 0
-                  ? 'text-foreground/80 border-primary/20'
-                  : 'text-muted-foreground/60'
-              )}
-            >
-              <Tag className="size-3.5" />
-              {selectedTagIds.length > 0
-                ? `${selectedTagIds.length} tag${selectedTagIds.length > 1 ? 's' : ''}`
-                : 'Tags'}
-            </button>
-          </PopoverTrigger>
-          <PopoverContent align="start" className="w-48 p-2">
-            <div className="max-h-60 space-y-1 overflow-y-auto">
-              {tags.map((t) => (
+          <div className="flex flex-wrap items-center gap-2.5">
+            <TagSelector
+              tags={tags}
+              selectedIds={selectedTagIds}
+              onChange={setSelectedTagIds}
+              onTagCreated={onTagCreated}
+            />
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
                 <button
-                  key={t.id}
                   type="button"
-                  onClick={() =>
-                    setSelectedTagIds((prev) =>
-                      prev.includes(t.id) ? prev.filter((id) => id !== t.id) : [...prev, t.id]
-                    )
-                  }
-                  className="hover:bg-accent flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors"
+                  className={cn(
+                    'flex items-center gap-2 rounded-full border px-3.5 py-2 text-xs font-semibold backdrop-blur-xl transition-all duration-200',
+                    'bg-glass-bg/70 border-glass-border hover:bg-glass-bg hover:border-primary/30',
+                    priority !== 'none'
+                      ? cn(currentPriority.color, 'border-current/20')
+                      : 'text-muted-foreground/60'
+                  )}
                 >
-                  <div
+                  <Flag className="size-3.5" />
+                  {currentPriority.label}
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-36">
+                {PRIORITY_OPTIONS.map((opt) => (
+                  <DropdownMenuItem
+                    key={opt.value}
+                    onClick={() => setPriority(opt.value)}
                     className={cn(
-                      'flex size-4 items-center justify-center rounded border',
-                      selectedTagIds.includes(t.id) ? 'bg-primary border-primary' : 'border-input'
+                      'flex cursor-pointer items-center gap-2.5',
+                      priority === opt.value ? opt.color : 'text-foreground/70'
                     )}
                   >
-                    {selectedTagIds.includes(t.id) && (
-                      <Check className="text-primary-foreground size-3" />
-                    )}
-                  </div>
-                  <span
-                    className="size-2 shrink-0 rounded-full"
-                    style={{ backgroundColor: `oklch(0.65 0.18 ${tagHue(t.name)})` }}
-                  />
-                  <span className="flex-1 text-left">{t.name}</span>
-                </button>
-              ))}
-              {tags.length === 0 && (
-                <p className="text-muted-foreground/50 px-2 py-1 text-xs">No tags yet</p>
-              )}
-            </div>
-            {/* Inline tag creation */}
-            <div className="border-glass-border/60 mt-2 border-t pt-2">
-              <form onSubmit={handleCreateTag} className="flex items-center gap-1.5">
-                <input
-                  ref={newTagInputRef}
-                  type="text"
-                  value={newTagName}
-                  onChange={(e) => setNewTagName(e.target.value)}
-                  placeholder="New tag..."
-                  className="text-foreground placeholder:text-muted-foreground/40 min-w-0 flex-1 bg-transparent text-xs outline-none"
-                />
+                    <span className={cn('size-2 shrink-0 rounded-full', opt.dot)} />
+                    {opt.label}
+                    {priority === opt.value && <Check className="text-primary ml-auto size-3.5" />}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            <Popover>
+              <PopoverTrigger asChild>
                 <button
-                  type="submit"
-                  disabled={!newTagName.trim() || isCreatingTag}
-                  className="text-muted-foreground hover:text-primary flex shrink-0 items-center justify-center transition-colors duration-150 disabled:opacity-30"
-                  aria-label="Create tag"
-                >
-                  {isCreatingTag ? (
-                    <Loader2 className="size-3.5 animate-spin" />
-                  ) : (
-                    <Plus className="size-3.5" />
+                  type="button"
+                  className={cn(
+                    'flex items-center gap-2 rounded-full border px-3.5 py-2 text-xs font-semibold backdrop-blur-xl transition-all duration-200',
+                    'bg-glass-bg/70 border-glass-border hover:bg-glass-bg hover:border-primary/30',
+                    dueDate ? 'text-accent border-accent/20' : 'text-muted-foreground/60'
                   )}
+                >
+                  <CalendarIcon className="size-3.5" />
+                  {dueDate
+                    ? dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                    : 'Due date'}
                 </button>
-              </form>
-            </div>
-          </PopoverContent>
-        </Popover>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={dueDate}
+                  onSelect={setDueDate}
+                  disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                />
+              </PopoverContent>
+            </Popover>
 
-        {/* Priority picker */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button
-              type="button"
-              className={cn(
-                'flex items-center gap-2 rounded-full px-3.5 py-2 text-xs font-semibold transition-all duration-200',
-                'bg-glass-bg/70 border-glass-border hover:bg-glass-bg hover:border-primary/30 border backdrop-blur-xl',
-                priority !== 'none'
-                  ? cn(currentPriority.color, 'border-current/20')
-                  : 'text-muted-foreground/60'
-              )}
-            >
-              <Flag className="size-3.5" />
-              {currentPriority.label}
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="w-36">
-            {priorityOptions.map((opt) => (
-              <DropdownMenuItem
-                key={opt.value}
-                onClick={() => setPriority(opt.value)}
-                className={cn(
-                  'flex cursor-pointer items-center gap-2.5',
-                  priority === opt.value ? opt.color : 'text-foreground/70'
-                )}
+            {hasOptions && (
+              <button
+                type="button"
+                onClick={clearOptions}
+                className="text-muted-foreground/50 hover:text-destructive hover:bg-destructive/10 ml-auto flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-all duration-200"
               >
-                <span className={cn('size-2 shrink-0 rounded-full', opt.dot)} />
-                {opt.label}
-                {priority === opt.value && <Check className="text-primary ml-auto size-3.5" />}
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
+                <X className="size-3.5" />
+                Clear
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
-        {/* Due date picker */}
-        <Popover>
-          <PopoverTrigger asChild>
-            <button
-              type="button"
-              className={cn(
-                'flex items-center gap-2 rounded-full px-3.5 py-2 text-xs font-semibold transition-all duration-200',
-                'bg-glass-bg/70 border-glass-border hover:bg-glass-bg hover:border-primary/30 border backdrop-blur-xl',
-                dueDate ? 'text-accent border-accent/20' : 'text-muted-foreground/60'
-              )}
-            >
-              <CalendarIcon className="size-3.5" />
-              {dueDate
-                ? dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-                : 'Due date'}
-            </button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
-            <Calendar
-              mode="single"
-              selected={dueDate}
-              onSelect={setDueDate}
-              disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
-            />
-          </PopoverContent>
-        </Popover>
-
-        {/* Clear all options */}
-        {hasOptions && (
-          <button
-            type="button"
-            onClick={clearOptions}
-            className="text-muted-foreground/50 hover:text-destructive hover:bg-destructive/10 ml-auto flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-all duration-200"
-          >
-            <X className="size-3.5" />
-            Clear
-          </button>
-        )}
-      </div>
-
-      {/* Active options summary (shown when options panel is collapsed but options are set) */}
+      {/* Collapsed summary */}
       {!showOptions && hasOptions && text.trim() && (
         <div className="mt-2 ml-12 flex flex-wrap items-center gap-2">
           {description.trim() && (
-            <span className="bg-foreground/5 text-foreground/50 dark:bg-foreground/8 dark:text-foreground/60 inline-flex max-w-[200px] truncate rounded-full px-2.5 py-1 text-[11px] font-medium italic">
+            <span className="bg-foreground/5 text-foreground/50 dark:bg-foreground/8 inline-flex max-w-50 truncate rounded-full px-2.5 py-1 text-[11px] font-medium italic">
               {description.trim()}
             </span>
           )}
           {selectedTags.map((tag) => (
             <span
               key={tag.id}
-              className="bg-foreground/5 text-foreground/60 dark:bg-foreground/8 dark:text-foreground/70 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium"
+              className="bg-foreground/5 text-foreground/60 dark:bg-foreground/8 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium"
             >
-              <span
-                className="size-2 shrink-0 rounded-full"
-                style={{ backgroundColor: `oklch(0.65 0.18 ${tagHue(tag.name)})` }}
-              />
               {tag.name}
             </span>
           ))}
@@ -352,13 +222,7 @@ export function TodoInput({ onAdd, tags, onTagCreated }: TodoInputProps) {
             <span
               className={cn(
                 'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold',
-                priority === 'low'
-                  ? 'bg-sky-500/10 dark:bg-sky-400/15'
-                  : priority === 'medium'
-                    ? 'bg-amber-500/10 dark:bg-amber-400/15'
-                    : priority === 'high'
-                      ? 'bg-red-500/10 dark:bg-red-400/15'
-                      : 'bg-rose-500/10 dark:bg-rose-400/15',
+                currentPriority.bgColor,
                 currentPriority.color
               )}
             >
