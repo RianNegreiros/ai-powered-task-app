@@ -1,31 +1,27 @@
-# Stage 1: Build the application
+# Stage 1: Build
 FROM maven:3.9.12-eclipse-temurin-21 AS build
-
-# Set working directory
 WORKDIR /app
 
-# Copy Maven configuration
 COPY pom.xml .
 COPY mvnw .
 COPY .mvn .mvn
 
-# Copy source code
-COPY src ./src
+# ← Separate dependency download for better layer caching
+RUN mvn dependency:go-offline -q
 
-# Build the application
+COPY src ./src
 RUN mvn clean package -DskipTests
 
-# Stage 2: Create runtime image
+# Stage 2: Runtime
 FROM eclipse-temurin:21-jre-alpine
-
-# Set working directory
 WORKDIR /app
 
-# Copy the built JAR from the build stage
-COPY --from=build /app/target/*.jar app.jar
+# ← Run as non-root user (security best practice)
+RUN addgroup -S spring && adduser -S spring -G spring
+USER spring
 
-# Expose the default Spring Boot port
+COPY --from=build /app/target/*.jar app.jar
 EXPOSE 8080
 
-# Run the application
-CMD ["java", "-jar", "app.jar"]
+# ← Explicit JVM flags: faster startup, respects container memory limits
+CMD ["java", "-XX:+UseContainerSupport", "-XX:MaxRAMPercentage=75.0", "-jar", "app.jar"]
