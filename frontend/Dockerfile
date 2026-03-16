@@ -9,11 +9,14 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
+# ensures reproducible installs
+COPY pnpm-lock.yaml ./ 
+
 # Install pnpm globally
 RUN npm install -g pnpm
 
-# Install dependencies using pnpm
-RUN pnpm install
+# Install dependencies using pnpm fail if lockfile is out of sync
+RUN pnpm install --frozen-lockfile
 
 # Copy source code
 COPY . .
@@ -22,4 +25,4 @@ COPY . .
 EXPOSE 5173
 
 # Start development server with host binding
-CMD ["pnpm", "run", "dev", "--", "--host", "0.0.0.0"]
+CMD ["pnpm", "run", "dev"]
