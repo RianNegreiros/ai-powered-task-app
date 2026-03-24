@@ -2,7 +2,12 @@ import { useState, useRef, useEffect } from 'react'
 import { Flag, Check } from 'lucide-react'
 import { Calendar } from '@/components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { Calendar as CalendarIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { PRIORITY_OPTIONS } from '@/config/priority'
@@ -14,7 +19,9 @@ interface TodoItemEditProps {
   todo: Task
   tags: TagEntity[]
   index: number
-  onSave: (updates: Partial<Pick<Task, 'title' | 'description' | 'priority' | 'dueDate' | 'tags'>>) => void
+  onSave: (
+    updates: Partial<Pick<Task, 'title' | 'description' | 'priority' | 'dueDate' | 'tags'>>
+  ) => void
   onCancel: () => void
 }
 
@@ -38,7 +45,13 @@ export function TodoItemEdit({ todo, tags, index, onSave, onCancel }: TodoItemEd
     const selectedTags = tags
       .filter((t) => tagIds.includes(t.id))
       .map((t) => ({ id: parseInt(t.id), name: t.name }))
-    onSave({ title: title.trim(), description: description.trim() || null, priority, dueDate: dueDate ?? null, tags: selectedTags })
+    onSave({
+      title: title.trim(),
+      description: description.trim() || null,
+      priority,
+      dueDate: dueDate ?? null,
+      tags: selectedTags,
+    })
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -68,7 +81,7 @@ export function TodoItemEdit({ todo, tags, index, onSave, onCancel }: TodoItemEd
         value={title}
         onChange={(e) => setTitle(e.target.value)}
         placeholder="Task title..."
-        className="text-foreground placeholder:text-muted-foreground/60 w-full bg-transparent text-base font-semibold leading-relaxed outline-none transition-colors"
+        className="text-foreground placeholder:text-muted-foreground/60 w-full bg-transparent text-base leading-relaxed font-semibold transition-colors outline-none"
       />
 
       <textarea
@@ -105,7 +118,10 @@ export function TodoItemEdit({ todo, tags, index, onSave, onCancel }: TodoItemEd
               <DropdownMenuItem
                 key={opt.value}
                 onClick={() => setPriority(opt.value)}
-                className={cn('flex cursor-pointer items-center gap-2.5 text-sm', priority === opt.value ? opt.color : 'text-foreground/80')}
+                className={cn(
+                  'flex cursor-pointer items-center gap-2.5 text-sm',
+                  priority === opt.value ? opt.color : 'text-foreground/80'
+                )}
               >
                 <span className={cn('size-2.5 shrink-0 rounded-full', opt.dot)} />
                 {opt.label}
@@ -126,7 +142,9 @@ export function TodoItemEdit({ todo, tags, index, onSave, onCancel }: TodoItemEd
               )}
             >
               <CalendarIcon className="size-3.5" />
-              {dueDate ? dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'Due date'}
+              {dueDate
+                ? dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                : 'Due date'}
             </button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="start">

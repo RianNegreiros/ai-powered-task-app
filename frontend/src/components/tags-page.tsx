@@ -1,15 +1,10 @@
 import { useState, useEffect } from 'react'
 import { Plus, X, ArrowLeft } from 'lucide-react'
+import { tagHue } from '@/lib/utils'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
 import { GlassPanel } from './glass-panel'
 import { getTags, createTag, deleteTag, type Tag } from '@/lib/api-tags'
-
-function tagHue(name: string): number {
-  let hash = 0
-  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash)
-  return Math.abs(hash) % 360
-}
 
 export function TagsPage() {
   const [tags, setTags] = useState<Tag[]>([])

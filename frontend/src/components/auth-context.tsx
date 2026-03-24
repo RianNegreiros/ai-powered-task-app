@@ -1,5 +1,5 @@
 import { createContext, useState, useCallback, useEffect, type ReactNode, useContext } from 'react'
-import { apiFetch } from '@/lib/api'
+import { apiFetch, API_BASE } from '@/lib/api'
 
 export interface User {
   id: string
@@ -19,8 +19,6 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null)
 
-const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:8080'
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -34,8 +32,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const res = await apiFetch('/api/auth/me')
       if (res.ok) {
-        const data = await res.json()
-        setUser(data)
+        setUser(await res.json())
       } else {
         localStorage.removeItem('token')
         localStorage.removeItem('refreshToken')
@@ -46,20 +43,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
-  const login = useCallback(
-    async (email: string, password: string) => {
+  // Fix 4: shared helper eliminates duplicated try/catch/finally in login + register
+  const authPost = useCallback(
+    async (endpoint: string, body: Record<string, string>, fallbackMsg: string) => {
       setIsLoading(true)
       setError(null)
       try {
-        const res = await fetch(`${API_BASE}/api/auth/login`, {
+        const res = await fetch(`${API_BASE}/api/auth/${endpoint}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
-          body: JSON.stringify({ email, password }),
+          body: JSON.stringify(body),
         })
         if (!res.ok) {
           const data = await res.json().catch(() => ({}))
-          throw new Error(data.message ?? 'Invalid email or password')
+          throw new Error(data.message ?? fallbackMsg)
         }
         const data = await res.json()
         localStorage.setItem('token', data.token)
@@ -74,32 +72,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [fetchUser]
   )
 
+  const login = useCallback(
+    (email: string, password: string) =>
+      authPost('login', { email, password }, 'Invalid email or password'),
+    [authPost]
+  )
+
   const register = useCallback(
-    async (name: string, email: string, password: string) => {
-      setIsLoading(true)
-      setError(null)
-      try {
-        const res = await fetch(`${API_BASE}/api/auth/register`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify({ name, email, password }),
-        })
-        if (!res.ok) {
-          const data = await res.json().catch(() => ({}))
-          throw new Error(data.message ?? 'Registration failed')
-        }
-        const data = await res.json()
-        localStorage.setItem('token', data.token)
-        localStorage.setItem('refreshToken', data.refreshToken)
-        await fetchUser()
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Something went wrong')
-      } finally {
-        setIsLoading(false)
-      }
-    },
-    [fetchUser]
+    (name: string, email: string, password: string) =>
+      authPost('register', { name, email, password }, 'Registration failed'),
+    [authPost]
   )
 
   const logout = useCallback(() => {
@@ -121,8 +103,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 export function useAuth() {
   const context = useContext(AuthContext)
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider')
-  }
+  if (!context) throw new Error('useAuth must be used within an AuthProvider')
   return context
 }

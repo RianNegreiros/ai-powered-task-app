@@ -22,6 +22,14 @@ interface KanbanColumnViewProps {
     updates: Partial<Pick<Task, 'title' | 'description' | 'priority' | 'dueDate' | 'tags'>>
   ) => void
   scrollable?: boolean
+  // DnD props
+  draggedTaskId?: string | null
+  isDragOver?: boolean
+  onDragStart?: (taskId: string) => void
+  onDragEnd?: () => void
+  onDragOver?: (columnId: string) => void
+  onDragLeave?: () => void
+  onDrop?: (columnId: string) => void
 }
 
 export { DONE_PAGE_SIZE }
@@ -37,6 +45,13 @@ export function KanbanColumnView({
   onDelete,
   onUpdate,
   scrollable = false,
+  draggedTaskId,
+  isDragOver = false,
+  onDragStart,
+  onDragEnd,
+  onDragOver,
+  onDragLeave,
+  onDrop,
 }: KanbanColumnViewProps) {
   const allTasks =
     column.id === 'done'
@@ -55,8 +70,27 @@ export function KanbanColumnView({
   const visibleTasks = column.id === 'done' ? allTasks.slice(0, doneVisible) : allTasks
   const hasMore = column.id === 'done' && allTasks.length > doneVisible
 
+  const handleDragOver = (e: React.DragEvent) => {
+    if (!draggedTaskId) return
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+    onDragOver?.(column.id)
+  }
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    onDrop?.(column.id)
+  }
+
   const header = (
-    <div className={cn('mb-3 flex items-center gap-2 rounded-xl px-3 py-2', column.bgColor)}>
+    <div
+      className={cn(
+        'mb-3 flex items-center gap-2 rounded-xl px-3 py-2 transition-all duration-200',
+        column.bgColor,
+        isDragOver && 'ring-2 ring-inset',
+        isDragOver && column.borderColor.replace('border-', 'ring-')
+      )}
+    >
       <span className={column.color}>{column.icon}</span>
       <h2 className={cn('text-sm font-semibold', column.color)}>{column.label}</h2>
       <span
@@ -73,29 +107,57 @@ export function KanbanColumnView({
 
   const cards = (
     <div className="flex flex-col gap-2 pr-2">
+      {isDragOver && allTasks.length === 0 && (
+        <div
+          className={cn(
+            'flex items-center justify-center rounded-xl border-2 border-dashed py-10 transition-all duration-200',
+            column.borderColor,
+            'opacity-80'
+          )}
+        >
+          <p className="text-muted-foreground/70 text-xs font-medium">Drop here</p>
+        </div>
+      )}
+
       {visibleTasks.length > 0 ? (
         <>
-          {visibleTasks.map((todo, i) => (
-            <GlassPanel
-              key={todo.id}
-              className={cn(
-                'rounded-xl border-l-[3px] p-0',
-                column.id !== 'done'
-                  ? column.borderColor
-                  : 'border-l-emerald-500/50 dark:border-l-emerald-400/40'
-              )}
-            >
-              <TodoItem
-                todo={todo}
-                onToggle={onToggle}
-                onDelete={onDelete}
-                onUpdate={onUpdate}
-                index={i}
-                tags={tags}
-                compact
-              />
-            </GlassPanel>
-          ))}
+          {visibleTasks.map((todo, i) => {
+            const isBeingDragged = draggedTaskId === todo.id
+            return (
+              <div
+                key={todo.id}
+                draggable={!!onDragStart}
+                onDragStart={(e) => {
+                  e.dataTransfer.effectAllowed = 'move'
+                  onDragStart?.(todo.id)
+                }}
+                onDragEnd={() => onDragEnd?.()}
+                className={cn(
+                  'transition-all duration-200',
+                  isBeingDragged && 'scale-[0.98] opacity-40',
+                  onDragStart && 'cursor-grab active:cursor-grabbing'
+                )}
+              >
+                <GlassPanel
+                  className={cn(
+                    'rounded-xl border-l-[3px] p-0',
+                    column.id !== 'done'
+                      ? column.borderColor
+                      : 'border-l-emerald-500/50 dark:border-l-emerald-400/40'
+                  )}
+                >
+                  <TodoItem
+                    todo={todo}
+                    onToggle={onToggle}
+                    onDelete={onDelete}
+                    onUpdate={onUpdate}
+                    index={i}
+                    tags={tags}
+                  />
+                </GlassPanel>
+              </div>
+            )
+          })}
           {hasMore && (
             <button
               onClick={onDoneMore}
@@ -109,15 +171,17 @@ export function KanbanColumnView({
           )}
         </>
       ) : (
-        <div
-          className={cn(
-            'flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed py-10 opacity-50',
-            column.borderColor
-          )}
-        >
-          {column.emptyIcon}
-          <p className="text-muted-foreground/70 text-xs font-medium">{column.emptyText}</p>
-        </div>
+        !isDragOver && (
+          <div
+            className={cn(
+              'flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed py-10 opacity-50',
+              column.borderColor
+            )}
+          >
+            {column.emptyIcon}
+            <p className="text-muted-foreground/70 text-xs font-medium">{column.emptyText}</p>
+          </div>
+        )
       )}
     </div>
   )
@@ -125,8 +189,14 @@ export function KanbanColumnView({
   if (scrollable) {
     return (
       <div
-        className="animate-slide-up flex h-full min-w-50 flex-1 flex-col"
+        className={cn(
+          'animate-slide-up flex h-full min-w-50 flex-1 flex-col rounded-xl transition-all duration-200',
+          isDragOver && 'bg-foreground/2'
+        )}
         style={{ animationDelay: `${colIndex * 60}ms` }}
+        onDragOver={handleDragOver}
+        onDragLeave={() => onDragLeave?.()}
+        onDrop={handleDrop}
       >
         {header}
         <div className="flex-1 overflow-hidden">
@@ -137,7 +207,16 @@ export function KanbanColumnView({
   }
 
   return (
-    <div className="animate-slide-up w-full" style={{ animationDelay: `${colIndex * 40}ms` }}>
+    <div
+      className={cn(
+        'animate-slide-up w-full rounded-xl transition-all duration-200',
+        isDragOver && 'bg-foreground/2'
+      )}
+      style={{ animationDelay: `${colIndex * 40}ms` }}
+      onDragOver={handleDragOver}
+      onDragLeave={() => onDragLeave?.()}
+      onDrop={handleDrop}
+    >
       {header}
       {cards}
     </div>

@@ -1,14 +1,17 @@
 import { useEffect, useState } from 'react'
-import { User, Moon, Sun } from 'lucide-react'
+import { User, Moon, Sun, Columns3, LayoutList } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useTheme } from 'next-themes'
 import { GlassPanel } from './glass-panel'
 import { useAuth } from './auth-context'
 import { getMe } from '@/lib/api-user'
+import { useViewMode } from '@/hooks/use-view-mode'
+import { cn } from '@/lib/utils'
 
 export function ProfilePage() {
   const { logout } = useAuth()
   const { theme, setTheme } = useTheme()
+  const { viewMode, setViewMode } = useViewMode()
   const [profile, setProfile] = useState<{ id: string; name: string; email: string } | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
@@ -45,6 +48,7 @@ export function ProfilePage() {
 
       <GlassPanel>
         <div className="flex flex-col gap-6 p-6">
+          {/* Avatar & name */}
           <div className="flex items-center gap-4">
             <div className="bg-glass-bg/60 border-glass-border flex size-16 items-center justify-center rounded-full border backdrop-blur-xl">
               <User className="text-muted-foreground size-8" />
@@ -57,8 +61,11 @@ export function ProfilePage() {
 
           <div className="bg-glass-border/60 h-px" />
 
-          <div className="flex flex-col gap-3">
+          {/* Appearance */}
+          <div className="flex flex-col gap-4">
             <h3 className="text-foreground text-sm font-medium">Appearance</h3>
+
+            {/* Theme toggle */}
             <div className="flex items-center justify-between">
               <span className="text-muted-foreground text-sm">Theme</span>
               <button
@@ -77,6 +84,40 @@ export function ProfilePage() {
                   </>
                 )}
               </button>
+            </div>
+
+            {/* Default view mode */}
+            <div className="flex items-center justify-between">
+              <div className="flex flex-col gap-0.5">
+                <span className="text-muted-foreground text-sm">Default view</span>
+                <span className="text-muted-foreground/50 text-xs">How tasks are displayed</span>
+              </div>
+              <div className="bg-glass-bg/40 border-glass-border flex items-center gap-1 rounded-xl border p-1 backdrop-blur-sm">
+                <button
+                  onClick={() => setViewMode('kanban')}
+                  className={cn(
+                    'flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-all duration-200',
+                    viewMode === 'kanban'
+                      ? 'bg-foreground/10 text-foreground shadow-sm'
+                      : 'text-muted-foreground/60 hover:text-muted-foreground'
+                  )}
+                >
+                  <Columns3 className="size-3.5" />
+                  Board
+                </button>
+                <button
+                  onClick={() => setViewMode('list')}
+                  className={cn(
+                    'flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-all duration-200',
+                    viewMode === 'list'
+                      ? 'bg-foreground/10 text-foreground shadow-sm'
+                      : 'text-muted-foreground/60 hover:text-muted-foreground'
+                  )}
+                >
+                  <LayoutList className="size-3.5" />
+                  List
+                </button>
+              </div>
             </div>
           </div>
 

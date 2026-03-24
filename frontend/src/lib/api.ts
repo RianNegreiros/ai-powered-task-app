@@ -1,4 +1,4 @@
-const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:8080'
+export const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:8080'
 
 let isRefreshing = false
 let refreshPromise: Promise<string> | null = null
@@ -7,13 +7,13 @@ async function refreshToken(): Promise<string> {
   if (refreshPromise) return refreshPromise
 
   refreshPromise = (async () => {
-    const refreshToken = localStorage.getItem('refreshToken')
-    if (!refreshToken) throw new Error('No refresh token')
+    const token = localStorage.getItem('refreshToken')
+    if (!token) throw new Error('No refresh token')
 
     const res = await fetch(`${API_BASE}/api/auth/refresh-token`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 'refresh-token': refreshToken }),
+      body: JSON.stringify({ 'refresh-token': token }),
     })
 
     if (!res.ok) throw new Error('Refresh failed')
@@ -25,8 +25,7 @@ async function refreshToken(): Promise<string> {
   })()
 
   try {
-    const token = await refreshPromise
-    return token
+    return await refreshPromise
   } finally {
     refreshPromise = null
     isRefreshing = false

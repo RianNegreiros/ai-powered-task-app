@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { useState, useEffect, useRef } from 'react'
+import { ChevronLeft, ChevronRight, LayoutList, Columns3 } from 'lucide-react'
 import { toast } from 'sonner'
 import { GlassPanel } from './glass-panel'
 import { TodoInput } from './todo-input'
 import { TodoAppHeader } from './todo-app-header'
 import { KanbanColumnView, DONE_PAGE_SIZE } from './kanban-column-view'
+import { ListView } from './list-view'
 import { useAuth } from './auth-context'
 import { createTask, deleteTask, getTasks, setTaskCompleted, updateTask } from '@/lib/api-tasks'
 import { getTags, type Tag as TagEntity } from '@/lib/api-tags'
@@ -12,6 +13,7 @@ import { KANBAN_COLUMNS } from '@/config/kanban'
 import { cn } from '@/lib/utils'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { useIsMobile } from '@/hooks/use-mobile'
+import { useViewMode } from '@/hooks/use-view-mode'
 import type { Task, Priority, TaskTag } from '@/types/task'
 
 function mapApiTask(t: Task): Task {
@@ -69,6 +71,11 @@ export function TodoApp() {
   const [doneVisible, setDoneVisible] = useState(DONE_PAGE_SIZE)
   const [activeColIndex, setActiveColIndex] = useState(0)
   const isMobile = useIsMobile()
+  const { viewMode, setViewMode } = useViewMode()
+
+  // DnD state
+  const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null)
+  const [dragOverColumn, setDragOverColumn] = useState<string | null>(null)
 
   useEffect(() => {
     Promise.all([getTasks(), getTags()])
@@ -146,6 +153,52 @@ export function TodoApp() {
     }
   }
 
+  // DnD: handle dropping a task onto a column/group
+  const handleDropToColumn = async (taskId: string, columnId: string) => {
+    const task = todos.find((t) => t.id === taskId)
+    if (!task) return
+
+    if (columnId === 'done') {
+      if (!task.completed) {
+        await handleToggleTask(taskId)
+        toast.success('Task marked as done')
+      }
+    } else {
+      const newPriority = columnId as Priority
+      // Un-complete if it was done
+      if (task.completed) {
+        await handleToggleTask(taskId)
+      }
+      // Change priority if different — always send full task data so backend
+      // PUT doesn't receive null for required fields like title
+      if (task.priority !== newPriority) {
+        await handleUpdateTask(taskId, {
+          title: task.title,
+          description: task.description,
+          priority: newPriority,
+          dueDate: task.dueDate,
+          tags: task.tags,
+        })
+      }
+    }
+  }
+
+  const handleKanbanDragStart = (taskId: string) => {
+    setDraggedTaskId(taskId)
+  }
+
+  const handleKanbanDragEnd = () => {
+    setDraggedTaskId(null)
+    setDragOverColumn(null)
+  }
+
+  const handleKanbanDrop = (columnId: string) => {
+    const taskId = draggedTaskId
+    setDraggedTaskId(null)
+    setDragOverColumn(null)
+    if (taskId) handleDropToColumn(taskId, columnId)
+  }
+
   const columnProps = {
     todos,
     tags,
@@ -154,6 +207,15 @@ export function TodoApp() {
     onToggle: handleToggleTask,
     onDelete: handleDeleteTask,
     onUpdate: handleUpdateTask,
+  }
+
+  const kanbanDndProps = {
+    draggedTaskId,
+    onDragStart: handleKanbanDragStart,
+    onDragEnd: handleKanbanDragEnd,
+    onDragOver: (columnId: string) => setDragOverColumn(columnId),
+    onDragLeave: () => setDragOverColumn(null),
+    onDrop: handleKanbanDrop,
   }
 
   const colTaskCount = (id: string) =>
@@ -177,7 +239,44 @@ export function TodoApp() {
         </GlassPanel>
       </div>
 
-      {/* Mobile: tab strip + single column */}
+      {/* View mode toggle — desktop only */}
+      {!isMobile && (
+        <div className="mb-4 flex items-center gap-2">
+          <div className="bg-glass-bg/40 border-glass-border flex items-center gap-1 rounded-xl border p-1 backdrop-blur-sm">
+            <button
+              onClick={() => setViewMode('kanban')}
+              className={cn(
+                'flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-all duration-200',
+                viewMode === 'kanban'
+                  ? 'bg-foreground/10 text-foreground shadow-sm'
+                  : 'text-muted-foreground/60 hover:text-muted-foreground'
+              )}
+              aria-label="Kanban view"
+            >
+              <Columns3 className="size-3.5" />
+              Board
+            </button>
+            <button
+              onClick={() => setViewMode('list')}
+              className={cn(
+                'flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-all duration-200',
+                viewMode === 'list'
+                  ? 'bg-foreground/10 text-foreground shadow-sm'
+                  : 'text-muted-foreground/60 hover:text-muted-foreground'
+              )}
+              aria-label="List view"
+            >
+              <LayoutList className="size-3.5" />
+              List
+            </button>
+          </div>
+          <p className="text-muted-foreground/40 text-xs">
+            Drag tasks between columns to change priority
+          </p>
+        </div>
+      )}
+
+      {/* Mobile: tab strip + single column (always kanban on mobile) */}
       {isMobile && (
         <div className="flex min-h-0 flex-1 flex-col">
           <div className="mb-3 flex items-center gap-1.5">
@@ -255,29 +354,45 @@ export function TodoApp() {
         </div>
       )}
 
-      {/* Desktop: horizontal Kanban */}
+      {/* Desktop: Kanban board or List view */}
       {!isMobile && (
         <div className="flex-1 overflow-hidden">
-          <ScrollArea className="h-full w-full">
-            <div
-              className="flex h-full w-full gap-3 pb-4"
-              style={{ minWidth: `${KANBAN_COLUMNS.length * 200}px` }}
-            >
-              {isLoading ? (
-                <KanbanSkeleton isMobile={false} />
-              ) : (
-                KANBAN_COLUMNS.map((column, colIndex) => (
-                  <KanbanColumnView
-                    key={column.id}
-                    column={column}
-                    colIndex={colIndex}
-                    scrollable
-                    {...columnProps}
-                  />
-                ))
-              )}
-            </div>
-          </ScrollArea>
+          {viewMode === 'list' ? (
+            isLoading ? (
+              <div className="flex flex-col gap-3">
+                {[0, 1, 2].map((i) => (
+                  <GlassPanel key={i} className="h-12 animate-pulse rounded-xl">
+                    {null}
+                  </GlassPanel>
+                ))}
+              </div>
+            ) : (
+              <ListView {...columnProps} onDropToColumn={handleDropToColumn} />
+            )
+          ) : (
+            <ScrollArea className="h-full w-full">
+              <div
+                className="flex h-full w-full gap-3 pb-4"
+                style={{ minWidth: `${KANBAN_COLUMNS.length * 200}px` }}
+              >
+                {isLoading ? (
+                  <KanbanSkeleton isMobile={false} />
+                ) : (
+                  KANBAN_COLUMNS.map((column, colIndex) => (
+                    <KanbanColumnView
+                      key={column.id}
+                      column={column}
+                      colIndex={colIndex}
+                      scrollable
+                      isDragOver={dragOverColumn === column.id}
+                      {...columnProps}
+                      {...kanbanDndProps}
+                    />
+                  ))
+                )}
+              </div>
+            </ScrollArea>
+          )}
         </div>
       )}
 

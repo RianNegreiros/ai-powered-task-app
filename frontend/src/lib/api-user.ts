@@ -1,10 +1,7 @@
 import { apiFetch } from './api'
+import type { User } from '@/components/auth-context'
 
-export interface User {
-  id: string
-  name: string
-  email: string
-}
+export type { User }
 
 export async function getMe(): Promise<User> {
   const res = await apiFetch('/api/auth/me')

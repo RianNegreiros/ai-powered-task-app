@@ -7,18 +7,25 @@ interface TodoAppHeaderProps {
   onLogout: () => void
 }
 
-const today = new Date()
-const DATE_LONG = today.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })
-const DATE_SHORT = today.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-
 const navLinkClass =
   'bg-glass-bg/60 border-glass-border text-muted-foreground hover:text-foreground hover:bg-glass-bg hover:border-primary/30 flex flex-col items-center justify-center gap-0.5 rounded-xl border px-2 py-1.5 backdrop-blur-xl transition-all duration-200 hover:shadow-sm sm:size-9 sm:rounded-full sm:p-0'
 
 export function TodoAppHeader({ user, onLogout }: TodoAppHeaderProps) {
+  // Fix 5: compute date inside the component so it stays accurate if the app stays open past midnight
+  const today = new Date()
+  const dateLong = today.toLocaleDateString('en-US', {
+    weekday: 'long',
+    month: 'short',
+    day: 'numeric',
+  })
+  const dateShort = today.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+
   return (
     <header className="mb-4 flex items-center justify-between gap-2 px-1 md:mb-6">
       <div>
-        <h1 className="font-display text-foreground text-2xl font-semibold tracking-tight md:text-3xl">Tasks</h1>
+        <h1 className="font-display text-foreground text-2xl font-semibold tracking-tight md:text-3xl">
+          Tasks
+        </h1>
         {user && (
           <p className="text-muted-foreground/60 mt-0.5 text-xs md:text-sm">
             {'Hello, '}
@@ -28,8 +35,8 @@ export function TodoAppHeader({ user, onLogout }: TodoAppHeaderProps) {
       </div>
 
       <div className="flex items-center gap-2 md:gap-3">
-        <p className="text-muted-foreground/70 text-xs font-medium sm:hidden">{DATE_SHORT}</p>
-        <p className="text-muted-foreground/70 hidden text-sm font-medium sm:block">{DATE_LONG}</p>
+        <p className="text-muted-foreground/70 text-xs font-medium sm:hidden">{dateShort}</p>
+        <p className="text-muted-foreground/70 hidden text-sm font-medium sm:block">{dateLong}</p>
 
         {user && (
           <>

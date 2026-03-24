@@ -12,7 +12,13 @@ interface TagSelectorProps {
   size?: 'sm' | 'md'
 }
 
-export function TagSelector({ tags, selectedIds, onChange, onTagCreated, size = 'md' }: TagSelectorProps) {
+export function TagSelector({
+  tags,
+  selectedIds,
+  onChange,
+  onTagCreated,
+  size = 'md',
+}: TagSelectorProps) {
   const [newTagName, setNewTagName] = useState('')
   const [isCreating, setIsCreating] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -49,7 +55,9 @@ export function TagSelector({ tags, selectedIds, onChange, onTagCreated, size = 
       <PopoverTrigger asChild>
         <button type="button" className={btnClass}>
           <Tag className="size-3.5" />
-          {selectedIds.length > 0 ? `${selectedIds.length} tag${selectedIds.length > 1 ? 's' : ''}` : 'Tags'}
+          {selectedIds.length > 0
+            ? `${selectedIds.length} tag${selectedIds.length > 1 ? 's' : ''}`
+            : 'Tags'}
         </button>
       </PopoverTrigger>
       <PopoverContent align="start" className="w-52 p-2">
@@ -61,14 +69,24 @@ export function TagSelector({ tags, selectedIds, onChange, onTagCreated, size = 
               onClick={() => toggle(t.id)}
               className="hover:bg-accent flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors"
             >
-              <div className={cn('flex size-4 items-center justify-center rounded border', selectedIds.includes(t.id) ? 'bg-primary border-primary' : 'border-input')}>
+              <div
+                className={cn(
+                  'flex size-4 items-center justify-center rounded border',
+                  selectedIds.includes(t.id) ? 'bg-primary border-primary' : 'border-input'
+                )}
+              >
                 {selectedIds.includes(t.id) && <Check className="text-primary-foreground size-3" />}
               </div>
-              <span className="size-2 shrink-0 rounded-full" style={{ backgroundColor: `oklch(0.65 0.18 ${tagHue(t.name)})` }} />
+              <span
+                className="size-2 shrink-0 rounded-full"
+                style={{ backgroundColor: `oklch(0.65 0.18 ${tagHue(t.name)})` }}
+              />
               <span className="flex-1 text-left">{t.name}</span>
             </button>
           ))}
-          {tags.length === 0 && <p className="text-muted-foreground/50 px-2 py-1 text-xs">No tags yet</p>}
+          {tags.length === 0 && (
+            <p className="text-muted-foreground/50 px-2 py-1 text-xs">No tags yet</p>
+          )}
         </div>
 
         {onTagCreated && (
@@ -88,7 +106,11 @@ export function TagSelector({ tags, selectedIds, onChange, onTagCreated, size = 
                 className="text-muted-foreground hover:text-primary flex shrink-0 items-center justify-center transition-colors disabled:opacity-30"
                 aria-label="Create tag"
               >
-                {isCreating ? <Loader2 className="size-3.5 animate-spin" /> : <Plus className="size-3.5" />}
+                {isCreating ? (
+                  <Loader2 className="size-3.5 animate-spin" />
+                ) : (
+                  <Plus className="size-3.5" />
+                )}
               </button>
             </form>
           </div>
