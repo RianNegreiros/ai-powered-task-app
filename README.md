@@ -117,12 +117,21 @@ OPENROUTER_API_KEY=your_key_here
 >           model: gpt-4o-mini # change to desired OpenAI model
 > ```
 
-4. Run the containers with Docker Compose:
+4. Create the RSA private and public keys
+
+```bash
+openssl genrsa > src/main/resources/app.key
+
+cd src/main/resources
+openssl rsa -in app.key -pubout -out app.pub
+```
+
+5. Run the containers with Docker Compose:
 
 ```bash
 docker compose up
 ```
 
-5. Import the API collection and environment into Postman to test the endpoints:
+6. Import the API collection and environment into Postman to test the endpoints:
 
 [<img src="https://run.pstmn.io/button.svg" alt="Run In Postman" style="width: 128px; height: 32px;">](https://app.getpostman.com/run-collection/15917186-28e16ac4-6325-4025-a7b4-52822e7659a6?action=collection%2Ffork&source=rip_markdown&collection-url=entityId%3D15917186-28e16ac4-6325-4025-a7b4-52822e7659a6%26entityType%3Dcollection%26workspaceId%3D76ff1811-a0af-4935-a423-2e5bb926aa1d#?env%5BAI%20Powered%20Task%20App%5D=W3sia2V5IjoiYXV0aF90b2tlbiIsInZhbHVlIjoiIiwiZW5hYmxlZCI6dHJ1ZSwidHlwZSI6ImRlZmF1bHQifSx7ImtleSI6ImJhc2VfdXJsIiwidmFsdWUiOiIiLCJlbmFibGVkIjp0cnVlLCJ0eXBlIjoiZGVmYXVsdCJ9LHsia2V5IjoiYXV0aF9yZWZyZXNoX3Rva2VuIiwidmFsdWUiOiIiLCJlbmFibGVkIjp0cnVlLCJ0eXBlIjoiZGVmYXVsdCJ9XQ==)
