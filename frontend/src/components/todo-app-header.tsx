@@ -11,7 +11,6 @@ const navLinkClass =
   'bg-glass-bg/60 border-glass-border text-muted-foreground hover:text-foreground hover:bg-glass-bg hover:border-primary/30 flex flex-col items-center justify-center gap-0.5 rounded-xl border px-2 py-1.5 backdrop-blur-xl transition-all duration-200 hover:shadow-sm sm:size-9 sm:rounded-full sm:p-0'
 
 export function TodoAppHeader({ user, onLogout }: TodoAppHeaderProps) {
-  // Fix 5: compute date inside the component so it stays accurate if the app stays open past midnight
   const today = new Date()
   const dateLong = today.toLocaleDateString('en-US', {
     weekday: 'long',
@@ -21,7 +20,7 @@ export function TodoAppHeader({ user, onLogout }: TodoAppHeaderProps) {
   const dateShort = today.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 
   return (
-    <header className="mb-4 flex items-center justify-between gap-2 px-1 md:mb-6">
+    <header className="mb-3 flex items-center justify-between gap-2 px-1 md:mb-4">
       <div>
         <h1 className="font-display text-foreground text-2xl font-semibold tracking-tight md:text-3xl">
           Tasks

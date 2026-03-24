@@ -105,7 +105,7 @@ function ListGroup({
 
       {/* Tasks */}
       {!collapsed && (
-        <div className="mt-1.5 flex flex-col gap-1.5 px-0.5 pb-1">
+        <div className="mt-1 flex flex-col gap-1 px-0.5 pb-1">
           {tasks.length === 0 ? (
             <div
               className={cn(
@@ -228,7 +228,7 @@ export function ListView({
 
   return (
     <ScrollArea className="h-full w-full">
-      <div className="flex flex-col gap-3 pr-2 pb-6">
+      <div className="flex flex-col gap-2 pr-2 pb-4">
         {KANBAN_COLUMNS.map((column) => {
           const tasks = getGroupTasks(column.id)
           return (

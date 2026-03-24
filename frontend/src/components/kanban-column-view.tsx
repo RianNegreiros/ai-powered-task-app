@@ -106,7 +106,7 @@ export function KanbanColumnView({
   )
 
   const cards = (
-    <div className="flex flex-col gap-2 pr-2">
+    <div className="flex flex-col gap-1.5 pr-2">
       {isDragOver && allTasks.length === 0 && (
         <div
           className={cn(

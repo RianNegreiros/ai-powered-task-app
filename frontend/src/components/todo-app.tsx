@@ -153,7 +153,6 @@ export function TodoApp() {
     }
   }
 
-  // DnD: handle dropping a task onto a column/group
   const handleDropToColumn = async (taskId: string, columnId: string) => {
     const task = todos.find((t) => t.id === taskId)
     if (!task) return
@@ -165,12 +164,9 @@ export function TodoApp() {
       }
     } else {
       const newPriority = columnId as Priority
-      // Un-complete if it was done
       if (task.completed) {
         await handleToggleTask(taskId)
       }
-      // Change priority if different — always send full task data so backend
-      // PUT doesn't receive null for required fields like title
       if (task.priority !== newPriority) {
         await handleUpdateTask(taskId, {
           title: task.title,
@@ -226,10 +222,10 @@ export function TodoApp() {
   const activeColumn = KANBAN_COLUMNS[activeColIndex]
 
   return (
-    <div className="flex h-dvh w-full flex-col overflow-hidden px-4 py-5 md:px-6 md:py-8">
+    <div className="flex h-dvh w-full flex-col overflow-hidden px-4 py-4 md:px-6 md:py-6">
       <TodoAppHeader user={user} onLogout={logout} />
 
-      <div className="mb-4 md:mb-6">
+      <div className="mb-3 md:mb-4">
         <GlassPanel className="p-0">
           <TodoInput
             onAdd={handleCreateTask}
@@ -241,7 +237,7 @@ export function TodoApp() {
 
       {/* View mode toggle — desktop only */}
       {!isMobile && (
-        <div className="mb-4 flex items-center gap-2">
+        <div className="mb-2 flex items-center gap-2 md:mb-3">
           <div className="bg-glass-bg/40 border-glass-border flex items-center gap-1 rounded-xl border p-1 backdrop-blur-sm">
             <button
               onClick={() => setViewMode('kanban')}
@@ -372,7 +368,7 @@ export function TodoApp() {
           ) : (
             <ScrollArea className="h-full w-full">
               <div
-                className="flex h-full w-full gap-3 pb-4"
+                className="flex h-full w-full gap-2 pb-3"
                 style={{ minWidth: `${KANBAN_COLUMNS.length * 200}px` }}
               >
                 {isLoading ? (
@@ -397,7 +393,7 @@ export function TodoApp() {
       )}
 
       {todos.length > 0 && (
-        <div className="mt-3 flex items-center justify-center gap-4 md:mt-4">
+        <div className="mt-2 flex items-center justify-center gap-4 md:mt-3">
           <p className="text-muted-foreground/70 text-xs">
             {todos.filter((t) => !t.completed).length} remaining
           </p>

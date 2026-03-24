@@ -82,7 +82,7 @@ export function TodoItem({ todo, onToggle, onDelete, onUpdate, index, tags }: To
   return (
     <div
       className={cn(
-        'group animate-slide-up relative flex items-start gap-3 px-3 py-3 transition-all duration-300 ease-out',
+        'group animate-slide-up relative flex items-start gap-3 px-3 py-2 transition-all duration-300 ease-out',
         due?.isOverdue
           ? 'hover:bg-red-500/5 dark:hover:bg-red-400/5'
           : 'hover:bg-foreground/2 dark:hover:bg-foreground/3',
@@ -148,6 +148,12 @@ export function TodoItem({ todo, onToggle, onDelete, onUpdate, index, tags }: To
         >
           {todo.title}
         </span>
+
+        {!todo.completed && todo.description && (
+          <span className="text-muted-foreground/70 text-xs leading-relaxed wrap-break-word">
+            {todo.description}
+          </span>
+        )}
 
         {!todo.completed && (due || todo.tags.length > 0) && (
           <div className="mt-0.5 flex flex-wrap items-center gap-1.5">
