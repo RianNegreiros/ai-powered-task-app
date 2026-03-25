@@ -1,16 +1,10 @@
 import { useState } from 'react'
-import { Plus, Flag, Calendar as CalendarIcon, SlidersHorizontal, X, Check } from 'lucide-react'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { Calendar } from '@/components/ui/calendar'
+import { Plus, Calendar as CalendarIcon, SlidersHorizontal, X, Flag } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { PRIORITY_OPTIONS } from '@/config/priority'
 import { TagSelector } from './tag-selector'
+import { PriorityPicker } from './priority-picker'
+import { DatePickerButton } from './date-picker-button'
 import type { Priority, TaskTag } from '@/types/task'
 import type { Tag as TagEntity } from '@/lib/api-tags'
 
@@ -62,7 +56,6 @@ export function TodoInput({ onAdd, tags, onTagCreated }: TodoInputProps) {
 
   return (
     <form onSubmit={handleSubmit} className="px-5 py-5">
-      {/* Main row */}
       <div className="flex items-center gap-4">
         <button
           type="submit"
@@ -105,7 +98,6 @@ export function TodoInput({ onAdd, tags, onTagCreated }: TodoInputProps) {
         </button>
       </div>
 
-      {/* Options panel */}
       {showPanel && (
         <div className="mt-3 ml-12 flex flex-col gap-3">
           <textarea
@@ -128,65 +120,9 @@ export function TodoInput({ onAdd, tags, onTagCreated }: TodoInputProps) {
               onTagCreated={onTagCreated}
             />
 
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button
-                  type="button"
-                  className={cn(
-                    'flex items-center gap-2 rounded-full border px-3.5 py-2 text-xs font-semibold backdrop-blur-xl transition-all duration-200',
-                    'bg-glass-bg/70 border-glass-border hover:bg-glass-bg hover:border-primary/30',
-                    priority !== 'none'
-                      ? cn(currentPriority.color, 'border-current/20')
-                      : 'text-muted-foreground/60'
-                  )}
-                >
-                  <Flag className="size-3.5" />
-                  {currentPriority.label}
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-36">
-                {PRIORITY_OPTIONS.map((opt) => (
-                  <DropdownMenuItem
-                    key={opt.value}
-                    onClick={() => setPriority(opt.value)}
-                    className={cn(
-                      'flex cursor-pointer items-center gap-2.5',
-                      priority === opt.value ? opt.color : 'text-foreground/70'
-                    )}
-                  >
-                    <span className={cn('size-2 shrink-0 rounded-full', opt.dot)} />
-                    {opt.label}
-                    {priority === opt.value && <Check className="text-primary ml-auto size-3.5" />}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <PriorityPicker value={priority} onChange={setPriority} />
 
-            <Popover>
-              <PopoverTrigger asChild>
-                <button
-                  type="button"
-                  className={cn(
-                    'flex items-center gap-2 rounded-full border px-3.5 py-2 text-xs font-semibold backdrop-blur-xl transition-all duration-200',
-                    'bg-glass-bg/70 border-glass-border hover:bg-glass-bg hover:border-primary/30',
-                    dueDate ? 'text-accent border-accent/20' : 'text-muted-foreground/60'
-                  )}
-                >
-                  <CalendarIcon className="size-3.5" />
-                  {dueDate
-                    ? dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-                    : 'Due date'}
-                </button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={dueDate}
-                  onSelect={setDueDate}
-                  disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
-                />
-              </PopoverContent>
-            </Popover>
+            <DatePickerButton value={dueDate} onChange={setDueDate} />
 
             {hasOptions && (
               <button
@@ -202,7 +138,6 @@ export function TodoInput({ onAdd, tags, onTagCreated }: TodoInputProps) {
         </div>
       )}
 
-      {/* Collapsed summary */}
       {!showOptions && hasOptions && text.trim() && (
         <div className="mt-2 ml-12 flex flex-wrap items-center gap-2">
           {description.trim() && (

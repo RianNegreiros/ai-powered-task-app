@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react'
 import { GripVertical, CheckCircle2, Inbox, Flag, ChevronDown, ChevronRight } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { cn, getColumnTasks } from '@/lib/utils'
 import { PRIORITY_CONFIG } from '@/config/priority'
 import { GlassPanel } from './glass-panel'
 import { TodoItem } from './todo-item'
@@ -78,7 +78,6 @@ function ListGroup({
       onDragLeave={onDragLeave}
       onDrop={(e) => onDrop(e, columnId)}
     >
-      {/* Group header */}
       <button
         onClick={() => setCollapsed((c) => !c)}
         className={cn(
@@ -103,7 +102,6 @@ function ListGroup({
         </span>
       </button>
 
-      {/* Tasks */}
       {!collapsed && (
         <div className="mt-1 flex flex-col gap-1 px-0.5 pb-1">
           {tasks.length === 0 ? (
@@ -127,7 +125,6 @@ function ListGroup({
                 onDragEnd={onDragEnd}
                 className="group/row flex items-stretch gap-2"
               >
-                {/* Drag handle */}
                 <div className="flex cursor-grab items-center px-1 opacity-0 transition-opacity duration-150 group-hover/row:opacity-100 active:cursor-grabbing">
                   <GripVertical className="text-muted-foreground/40 size-4" />
                 </div>
@@ -172,7 +169,6 @@ export function ListView({
   const handleDragStart = (e: React.DragEvent, taskId: string) => {
     draggedTaskId.current = taskId
     e.dataTransfer.effectAllowed = 'move'
-    // Small timeout so the ghost image renders before the dragged element styling changes
     const el = e.currentTarget as HTMLElement
     setTimeout(() => el.classList.add('opacity-50'), 0)
   }
@@ -202,22 +198,6 @@ export function ListView({
     setDragOverGroup(null)
   }
 
-  const getGroupTasks = (columnId: string) => {
-    if (columnId === 'done') {
-      return todos
-        .filter((t) => t.completed)
-        .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
-    }
-    return todos
-      .filter((t) => !t.completed && t.priority === columnId)
-      .sort((a, b) => {
-        if (a.dueDate && b.dueDate) return a.dueDate.getTime() - b.dueDate.getTime()
-        if (a.dueDate) return -1
-        if (b.dueDate) return 1
-        return b.createdAt.getTime() - a.createdAt.getTime()
-      })
-  }
-
   const columnHandlerProps = {
     onDragStart: handleDragStart,
     onDragEnd: handleDragEnd,
@@ -230,7 +210,7 @@ export function ListView({
     <ScrollArea className="h-full w-full">
       <div className="flex flex-col gap-2 pr-2 pb-4">
         {KANBAN_COLUMNS.map((column) => {
-          const tasks = getGroupTasks(column.id)
+          const tasks = getColumnTasks(todos, column.id)
           return (
             <ListGroup
               key={column.id}

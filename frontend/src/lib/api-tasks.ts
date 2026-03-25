@@ -1,4 +1,4 @@
-import type { Task } from '@/components/todo-item'
+import type { Task } from '@/types/task'
 import { apiFetch } from './api'
 
 export async function getTasks() {

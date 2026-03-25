@@ -1,11 +1,13 @@
-import { useState, type FormEvent } from 'react'
 import { UserPlus, Check, X } from 'lucide-react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
 import { GlassPanel } from './glass-panel'
 import { GlassInput } from './glass-input'
 import { GlassButton } from './glass-button'
 import { useAuth } from './auth-context'
 import { cn } from '@/lib/utils'
 import { useNavigate } from 'react-router-dom'
+import { type RegisterFormData, registerSchema } from '@/schemas/auth'
 
 const passwordRules = [
   { label: 'At least 8 characters', test: (p: string) => p.length >= 8 },
@@ -15,42 +17,27 @@ const passwordRules = [
 
 export function RegisterForm() {
   const navigate = useNavigate()
-  const { register, isLoading, error, clearError } = useAuth()
-  const [name, setName] = useState('')
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
-  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
-  const [showPasswordRules, setShowPasswordRules] = useState(false)
+  const { register: registerUser, isLoading, error, clearError } = useAuth()
 
-  const validate = () => {
-    const errors: Record<string, string> = {}
-    if (!name.trim()) errors.name = 'Name is required'
-    if (!email.trim()) errors.email = 'Email is required'
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errors.email = 'Enter a valid email'
-    if (!password) errors.password = 'Password is required'
-    else if (password.length < 8) errors.password = 'Password must be at least 8 characters'
-    if (password !== confirmPassword) errors.confirmPassword = 'Passwords do not match'
-    setFieldErrors(errors)
-    return Object.keys(errors).length === 0
-  }
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors },
+  } = useForm<RegisterFormData>({
+    resolver: zodResolver(registerSchema),
+  })
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault()
+  const password = watch('password', '')
+  const showPasswordRules = password.length > 0
+
+  const onSubmit = async (data: RegisterFormData) => {
     clearError()
-    if (!validate()) return
-    await register(name, email, password)
-  }
-
-  const clearFieldError = (field: string) => {
-    if (fieldErrors[field]) {
-      setFieldErrors((p) => ({ ...p, [field]: '' }))
-    }
+    await registerUser(data.name, data.email, data.password)
   }
 
   return (
     <div className="mx-auto flex w-full max-w-sm flex-col gap-8 px-5 py-12 md:py-20">
-      {/* Header */}
       <header className="animate-slide-up flex flex-col items-center gap-3 text-center">
         <div className="bg-accent/10 border-accent/20 flex size-14 items-center justify-center rounded-2xl border shadow-[inset_0_1px_0_var(--glass-highlight)] backdrop-blur-xl">
           <UserPlus className="text-accent size-6" />
@@ -63,10 +50,8 @@ export function RegisterForm() {
         </p>
       </header>
 
-      {/* Form card */}
       <GlassPanel className="animate-slide-up" style={{ animationDelay: '60ms' }}>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-5 p-6">
-          {/* API error */}
+        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5 p-6">
           {error && (
             <div className="bg-destructive/10 border-destructive/20 text-destructive animate-slide-up rounded-xl border px-4 py-3 text-[13px]">
               {error}
@@ -77,27 +62,19 @@ export function RegisterForm() {
             label="Full Name"
             type="text"
             placeholder="Jane Doe"
-            value={name}
-            onChange={(e) => {
-              setName(e.target.value)
-              clearFieldError('name')
-            }}
-            error={fieldErrors.name}
             autoComplete="name"
             autoFocus
+            error={errors.name?.message}
+            {...register('name')}
           />
 
           <GlassInput
             label="Email"
             type="email"
             placeholder="you@example.com"
-            value={email}
-            onChange={(e) => {
-              setEmail(e.target.value)
-              clearFieldError('email')
-            }}
-            error={fieldErrors.email}
             autoComplete="email"
+            error={errors.email?.message}
+            {...register('email')}
           />
 
           <div className="flex flex-col gap-1.5">
@@ -105,19 +82,11 @@ export function RegisterForm() {
               label="Password"
               type="password"
               placeholder="Create a strong password"
-              value={password}
-              onChange={(e) => {
-                setPassword(e.target.value)
-                clearFieldError('password')
-                if (!showPasswordRules && e.target.value.length > 0) {
-                  setShowPasswordRules(true)
-                }
-              }}
-              error={fieldErrors.password}
               autoComplete="new-password"
+              error={errors.password?.message}
+              {...register('password')}
             />
 
-            {/* Password strength indicators */}
             {showPasswordRules && (
               <div className="animate-slide-up flex flex-col gap-1 px-1 pt-1">
                 {passwordRules.map((rule) => {
@@ -157,13 +126,9 @@ export function RegisterForm() {
             label="Confirm Password"
             type="password"
             placeholder="Repeat your password"
-            value={confirmPassword}
-            onChange={(e) => {
-              setConfirmPassword(e.target.value)
-              clearFieldError('confirmPassword')
-            }}
-            error={fieldErrors.confirmPassword}
             autoComplete="new-password"
+            error={errors.confirmPassword?.message}
+            {...register('confirmPassword')}
           />
 
           <GlassButton type="submit" isLoading={isLoading} className="mt-1">
@@ -172,7 +137,6 @@ export function RegisterForm() {
         </form>
       </GlassPanel>
 
-      {/* Terms */}
       <p
         className="text-muted-foreground/50 animate-slide-up px-4 text-center text-[12px] leading-relaxed"
         style={{ animationDelay: '100ms' }}
@@ -193,7 +157,6 @@ export function RegisterForm() {
         </button>
       </p>
 
-      {/* Switch to login */}
       <p
         className="text-muted-foreground animate-slide-up text-center text-sm"
         style={{ animationDelay: '140ms' }}

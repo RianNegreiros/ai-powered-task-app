@@ -1,38 +1,32 @@
-import { useState, type FormEvent } from 'react'
 import { LogIn } from 'lucide-react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
 import { GlassPanel } from './glass-panel'
 import { GlassInput } from './glass-input'
 import { GlassButton } from './glass-button'
 import { useAuth } from './auth-context'
 import { useNavigate } from 'react-router-dom'
+import { loginSchema, type LoginFormData } from '@/schemas/auth'
 
 export function LoginForm() {
   const navigate = useNavigate()
   const { login, isLoading, error, clearError } = useAuth()
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
 
-  const validate = () => {
-    const errors: Record<string, string> = {}
-    if (!email.trim()) errors.email = 'Email is required'
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errors.email = 'Enter a valid email'
-    if (!password) errors.password = 'Password is required'
-    else if (password.length < 6) errors.password = 'Password must be at least 6 characters'
-    setFieldErrors(errors)
-    return Object.keys(errors).length === 0
-  }
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
+  })
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault()
+  const onSubmit = async (data: LoginFormData) => {
     clearError()
-    if (!validate()) return
-    await login(email, password)
+    await login(data.email, data.password)
   }
 
   return (
     <div className="mx-auto flex w-full max-w-sm flex-col gap-8 px-5 py-16 md:py-24">
-      {/* Header */}
       <header className="animate-slide-up flex flex-col items-center gap-3 text-center">
         <div className="bg-primary/10 border-primary/20 flex size-14 items-center justify-center rounded-2xl border shadow-[inset_0_1px_0_var(--glass-highlight)] backdrop-blur-xl">
           <LogIn className="text-primary size-6" />
@@ -45,10 +39,8 @@ export function LoginForm() {
         </p>
       </header>
 
-      {/* Form card */}
       <GlassPanel className="animate-slide-up" style={{ animationDelay: '60ms' }}>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-5 p-6">
-          {/* API error */}
+        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5 p-6">
           {error && (
             <div className="bg-destructive/10 border-destructive/20 text-destructive animate-slide-up rounded-xl border px-4 py-3 text-[13px]">
               {error}
@@ -59,31 +51,19 @@ export function LoginForm() {
             label="Email"
             type="email"
             placeholder="you@example.com"
-            value={email}
-            onChange={(e) => {
-              setEmail(e.target.value)
-              if (fieldErrors.email) {
-                setFieldErrors((p) => ({ ...p, email: '' }))
-              }
-            }}
-            error={fieldErrors.email}
             autoComplete="email"
             autoFocus
+            error={errors.email?.message}
+            {...register('email')}
           />
 
           <GlassInput
             label="Password"
             type="password"
             placeholder="Your password"
-            value={password}
-            onChange={(e) => {
-              setPassword(e.target.value)
-              if (fieldErrors.password) {
-                setFieldErrors((p) => ({ ...p, password: '' }))
-              }
-            }}
-            error={fieldErrors.password}
             autoComplete="current-password"
+            error={errors.password?.message}
+            {...register('password')}
           />
 
           <div className="flex justify-end">
@@ -101,7 +81,6 @@ export function LoginForm() {
         </form>
       </GlassPanel>
 
-      {/* Switch to register */}
       <p
         className="text-muted-foreground animate-slide-up text-center text-sm"
         style={{ animationDelay: '120ms' }}

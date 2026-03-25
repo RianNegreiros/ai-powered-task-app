@@ -1,12 +1,10 @@
 import { GlassPanel } from './glass-panel'
 import { TodoItem } from './todo-item'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { cn } from '@/lib/utils'
-import type { KanbanColumn } from '@/config/kanban'
+import { cn, getColumnTasks } from '@/lib/utils'
+import { KANBAN_COLUMNS, DONE_PAGE_SIZE, type KanbanColumn } from '@/config/kanban'
 import type { Task } from '@/types/task'
 import type { Tag as TagEntity } from '@/lib/api-tags'
-
-const DONE_PAGE_SIZE = 10
 
 interface KanbanColumnViewProps {
   column: KanbanColumn
@@ -22,7 +20,6 @@ interface KanbanColumnViewProps {
     updates: Partial<Pick<Task, 'title' | 'description' | 'priority' | 'dueDate' | 'tags'>>
   ) => void
   scrollable?: boolean
-  // DnD props
   draggedTaskId?: string | null
   isDragOver?: boolean
   onDragStart?: (taskId: string) => void
@@ -32,7 +29,41 @@ interface KanbanColumnViewProps {
   onDrop?: (columnId: string) => void
 }
 
-export { DONE_PAGE_SIZE }
+export function KanbanSkeleton({ isMobile }: { isMobile: boolean }) {
+  const cols = isMobile ? [KANBAN_COLUMNS[0]] : KANBAN_COLUMNS
+  return (
+    <>
+      {cols.map((col) => (
+        <div
+          key={col.id}
+          className={cn('flex flex-col', isMobile ? 'w-full' : 'h-full w-72 shrink-0 md:w-80')}
+        >
+          <div className={cn('mb-3 flex items-center gap-2 rounded-xl px-3 py-2', col.bgColor)}>
+            <div className="bg-foreground/10 h-3.5 w-3.5 animate-pulse rounded" />
+            <div className="bg-foreground/10 h-3.5 w-16 animate-pulse rounded-full" />
+            <div className="bg-foreground/10 ml-auto size-5 animate-pulse rounded-full" />
+          </div>
+          <div className="flex flex-col gap-2 pr-2">
+            {[0, 1].map((i) => (
+              <GlassPanel
+                key={i}
+                className={cn(
+                  'rounded-xl border-l-[3px] p-0',
+                  col.id !== 'done' ? col.borderColor : 'border-l-emerald-500/50'
+                )}
+              >
+                <div className="flex flex-col gap-2 px-3 py-3">
+                  <div className="bg-foreground/8 h-3.5 w-3/4 animate-pulse rounded-full" />
+                  <div className="bg-foreground/6 h-3 w-1/2 animate-pulse rounded-full" />
+                </div>
+              </GlassPanel>
+            ))}
+          </div>
+        </div>
+      ))}
+    </>
+  )
+}
 
 export function KanbanColumnView({
   column,
@@ -53,19 +84,7 @@ export function KanbanColumnView({
   onDragLeave,
   onDrop,
 }: KanbanColumnViewProps) {
-  const allTasks =
-    column.id === 'done'
-      ? todos
-          .filter((t) => t.completed)
-          .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
-      : todos
-          .filter((t) => !t.completed && t.priority === column.id)
-          .sort((a, b) => {
-            if (a.dueDate && b.dueDate) return a.dueDate.getTime() - b.dueDate.getTime()
-            if (a.dueDate) return -1
-            if (b.dueDate) return 1
-            return b.createdAt.getTime() - a.createdAt.getTime()
-          })
+  const allTasks = getColumnTasks(todos, column.id)
 
   const visibleTasks = column.id === 'done' ? allTasks.slice(0, doneVisible) : allTasks
   const hasMore = column.id === 'done' && allTasks.length > doneVisible
