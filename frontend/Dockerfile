@@ -1,4 +1,4 @@
-FROM node:24-alpine
+FROM node:lts-alpine
 
 # Install dependencies for better compatibility
 RUN apk add --no-cache git
