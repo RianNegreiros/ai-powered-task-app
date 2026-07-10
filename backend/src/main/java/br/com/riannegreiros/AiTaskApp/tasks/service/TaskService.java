@@ -56,16 +56,16 @@ public class TaskService {
     }
 
     public TaskResponse getTask(String taskId, JwtAuthenticationToken token) {
-        getUser(token);
-        Task task = taskRepository.findById(Long.parseLong(taskId))
+        User user = getUser(token);
+        Task task = taskRepository.findByIdAndUserId(Long.parseLong(taskId), user.getId())
                 .orElseThrow(() -> new TaskNotFoundException("Task not found with ID: " + taskId));
         return toResponse(task);
     }
 
     public TaskResponse updateTask(String id, UpdateTaskRequest request,
             JwtAuthenticationToken token) {
-        getUser(token);
-        Task task = taskRepository.findById(Long.parseLong(id))
+        User user = getUser(token);
+        Task task = taskRepository.findByIdAndUserId(Long.parseLong(id), user.getId())
                 .orElseThrow(() -> new TaskNotFoundException("Task not found with ID: " + id));
 
         task.setTitle(request.title());
@@ -82,14 +82,14 @@ public class TaskService {
     }
 
     public void deleteTask(String id, JwtAuthenticationToken token) {
-        getUser(token);
-        taskRepository.delete(taskRepository.findById(Long.parseLong(id))
-                .orElseThrow(() -> new TaskNotFoundException("Task not found with ID: " + id)));
+        User user = getUser(token);
+        taskRepository.findByIdAndUserId(Long.parseLong(id), user.getId())
+                .orElseThrow(() -> new TaskNotFoundException("Task not found with ID: " + id));
     }
 
     public TaskResponse toggleTaskCompleted(String id, JwtAuthenticationToken token) {
-        getUser(token);
-        Task task = taskRepository.findById(Long.parseLong(id))
+        User user = getUser(token);
+        Task task = taskRepository.findByIdAndUserId(Long.parseLong(id), user.getId())
                 .orElseThrow(() -> new TaskNotFoundException("Task not found with ID: " + id));
 
         task.toggleTaskCompleted();
