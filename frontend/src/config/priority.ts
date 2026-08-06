@@ -55,8 +55,8 @@ export const PRIORITY_CONFIG: Record<Priority, PriorityMeta> = {
   none: {
     value: 'none',
     label: 'None',
-    color: 'text-muted-foreground/40',
-    dot: 'bg-muted-foreground/30',
+    color: 'text-muted-foreground',
+    dot: 'bg-muted-foreground/50',
     ringColor: 'border-foreground/20',
     bgColor: '',
     borderColor: 'border-foreground/15 dark:border-foreground/20',

@@ -10,7 +10,7 @@ export function useViewMode() {
       const stored = localStorage.getItem(STORAGE_KEY)
       if (stored === 'kanban' || stored === 'list') return stored
     } catch {}
-    return 'kanban'
+    return 'list'
   })
 
   const setViewMode = useCallback((mode: ViewMode) => {

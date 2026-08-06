@@ -1,12 +1,11 @@
 import { useState, useRef } from 'react'
-import { GripVertical, CheckCircle2, Inbox, Flag, ChevronDown, ChevronRight } from 'lucide-react'
+import { GripVertical, ChevronDown } from 'lucide-react'
 import { cn, getColumnTasks } from '@/lib/utils'
-import { PRIORITY_CONFIG } from '@/config/priority'
 import { GlassPanel } from './glass-panel'
 import { TodoItem } from './todo-item'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { KANBAN_COLUMNS } from '@/config/kanban'
-import type { Task, Priority } from '@/types/task'
+import type { Task } from '@/types/task'
 import type { Tag as TagEntity } from '@/lib/api-tags'
 
 interface ListViewProps {
@@ -25,8 +24,7 @@ interface ListGroupProps {
   columnId: string
   label: string
   color: string
-  bgColor: string
-  borderColor: string
+  ringColor: string
   icon: React.ReactNode
   tasks: Task[]
   tags: TagEntity[]
@@ -49,8 +47,7 @@ function ListGroup({
   columnId,
   label,
   color,
-  bgColor,
-  borderColor,
+  ringColor,
   icon,
   tasks,
   tags,
@@ -68,53 +65,47 @@ function ListGroup({
   const [collapsed, setCollapsed] = useState(false)
 
   return (
-    <div
+    <section
       className={cn(
-        'rounded-xl transition-all duration-200',
+        'rounded-2xl transition-all duration-200',
         isDragOver && 'ring-2 ring-inset',
-        isDragOver && borderColor.replace('border-', 'ring-')
+        isDragOver && ringColor.replace('border-', 'ring-')
       )}
       onDragOver={(e) => onDragOver(e, columnId)}
       onDragLeave={onDragLeave}
       onDrop={(e) => onDrop(e, columnId)}
     >
+      {/* Group header — a single, calm row. Priority is signaled by the dot + label. */}
       <button
         onClick={() => setCollapsed((c) => !c)}
-        className={cn(
-          'flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left transition-colors duration-150',
-          bgColor,
-          isDragOver && 'opacity-90'
-        )}
+        className="hover:bg-foreground/4 flex w-full items-center gap-2.5 rounded-xl px-2 py-2 text-left transition-colors duration-150"
+        aria-expanded={!collapsed}
       >
-        <span className={color}>{icon}</span>
-        <h3 className={cn('text-sm font-semibold', color)}>{label}</h3>
         <span
           className={cn(
-            'flex size-5 items-center justify-center rounded-full text-xs font-medium',
-            bgColor,
-            color
+            'text-muted-foreground transition-transform duration-200',
+            collapsed && '-rotate-90'
           )}
         >
-          {tasks.length}
+          <ChevronDown className="size-4" />
         </span>
-        <span className={cn('ml-auto', color)}>
-          {collapsed ? <ChevronRight className="size-3.5" /> : <ChevronDown className="size-3.5" />}
+        <span className={cn('flex items-center', color)}>{icon}</span>
+        <h3 className="text-foreground text-sm font-semibold">{label}</h3>
+        <span className="bg-foreground/8 text-muted-foreground flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-xs font-semibold">
+          {tasks.length}
         </span>
       </button>
 
       {!collapsed && (
-        <div className="mt-1 flex flex-col gap-1 px-0.5 pb-1">
+        <div className="mt-0.5 flex flex-col gap-1.5 pb-2">
           {tasks.length === 0 ? (
             <div
               className={cn(
-                'flex items-center justify-center rounded-lg border-2 border-dashed py-6 opacity-40',
-                borderColor,
-                isDragOver && 'opacity-70'
+                'text-muted-foreground flex items-center justify-center rounded-xl border border-dashed py-6 text-xs font-medium transition-all duration-200',
+                isDragOver ? cn('bg-foreground/4', ringColor) : 'border-border'
               )}
             >
-              <p className="text-muted-foreground/70 text-xs font-medium">
-                {isDragOver ? 'Drop to move here' : 'No tasks'}
-              </p>
+              {isDragOver ? 'Drop to set as ' + label.toLowerCase() : 'No tasks'}
             </div>
           ) : (
             tasks.map((task, i) => (
@@ -123,20 +114,13 @@ function ListGroup({
                 draggable
                 onDragStart={(e) => onDragStart(e, task.id)}
                 onDragEnd={onDragEnd}
-                className="group/row flex items-stretch gap-2"
+                className="group/row flex items-stretch"
               >
-                <div className="flex cursor-grab items-center px-1 opacity-0 transition-opacity duration-150 group-hover/row:opacity-100 active:cursor-grabbing">
-                  <GripVertical className="text-muted-foreground/40 size-4" />
+                <div className="text-muted-foreground/50 flex cursor-grab items-center pr-1 opacity-0 transition-opacity duration-150 group-hover/row:opacity-100 active:cursor-grabbing">
+                  <GripVertical className="size-4" />
                 </div>
 
-                <GlassPanel
-                  className={cn(
-                    'min-w-0 flex-1 rounded-xl border-l-[3px] p-0 transition-all duration-150',
-                    isDoneGroup
-                      ? 'border-l-emerald-500/50 dark:border-l-emerald-400/40'
-                      : borderColor
-                  )}
-                >
+                <GlassPanel className="min-w-0 flex-1 rounded-2xl p-0 transition-shadow duration-150 hover:shadow-[0_6px_20px_var(--glass-shadow)]">
                   <TodoItem
                     todo={task}
                     onToggle={onToggle}
@@ -151,7 +135,7 @@ function ListGroup({
           )}
         </div>
       )}
-    </div>
+    </section>
   )
 }
 
@@ -208,7 +192,7 @@ export function ListView({
 
   return (
     <ScrollArea className="h-full w-full">
-      <div className="flex flex-col gap-2 pr-2 pb-4">
+      <div className="mx-auto flex max-w-3xl flex-col gap-1 pr-2 pb-4">
         {KANBAN_COLUMNS.map((column) => {
           const tasks = getColumnTasks(todos, column.id)
           return (
@@ -217,8 +201,7 @@ export function ListView({
               columnId={column.id}
               label={column.label}
               color={column.color}
-              bgColor={column.bgColor}
-              borderColor={column.borderColor}
+              ringColor={column.borderColor}
               icon={column.icon}
               tasks={tasks}
               tags={tags}

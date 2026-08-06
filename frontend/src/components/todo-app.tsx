@@ -232,8 +232,10 @@ export function TodoApp() {
               List
             </button>
           </div>
-          <p className="text-muted-foreground/40 text-xs">
-            Drag tasks between columns to change priority
+          <p className="text-muted-foreground/70 text-xs">
+            {viewMode === 'list'
+              ? 'Drag a task onto another group to change its priority'
+              : 'Drag tasks between columns to change priority'}
           </p>
         </div>
       )}
@@ -308,7 +310,7 @@ export function TodoApp() {
           <p className="text-muted-foreground/70 text-xs">
             {todos.filter((t) => !t.completed).length} remaining
           </p>
-          <span className="text-muted-foreground/40">|</span>
+          <span className="text-muted-foreground/50">|</span>
           <p className="text-muted-foreground/70 text-xs">
             {todos.filter((t) => t.completed).length} completed
           </p>
