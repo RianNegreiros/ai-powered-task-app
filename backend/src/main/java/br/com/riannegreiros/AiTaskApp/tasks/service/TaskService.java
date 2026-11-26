@@ -3,8 +3,10 @@ package br.com.riannegreiros.AiTaskApp.tasks.service;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
+
 import br.com.riannegreiros.AiTaskApp.auth.model.User;
 import br.com.riannegreiros.AiTaskApp.auth.repository.UserRepository;
 import br.com.riannegreiros.AiTaskApp.infra.exception.TagNotFoundException;
@@ -83,8 +85,10 @@ public class TaskService {
 
     public void deleteTask(String id, JwtAuthenticationToken token) {
         User user = getUser(token);
-        taskRepository.findByIdAndUserId(Long.parseLong(id), user.getId())
+        Task task = taskRepository.findByIdAndUserId(Long.parseLong(id), user.getId())
                 .orElseThrow(() -> new TaskNotFoundException("Task not found with ID: " + id));
+
+        taskRepository.delete(task);
     }
 
     public TaskResponse toggleTaskCompleted(String id, JwtAuthenticationToken token) {
