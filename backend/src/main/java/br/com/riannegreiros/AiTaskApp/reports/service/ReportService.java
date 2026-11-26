@@ -4,9 +4,12 @@ import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
+
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
+
 import br.com.riannegreiros.AiTaskApp.ai.dto.AiResponse;
 import br.com.riannegreiros.AiTaskApp.ai.service.AiService;
 import br.com.riannegreiros.AiTaskApp.auth.model.User;
@@ -36,12 +39,11 @@ public class ReportService {
         this.aiService = aiService;
     }
 
-    public ReportResponse getUserLastReport(JwtAuthenticationToken token) {
+    public Optional<ReportResponse> getUserLastReport(JwtAuthenticationToken token) {
         User user = getUser(token);
 
-        Report report = reportRepository.findLastReportByUserId(user.getId());
-
-        return toResponse(report);
+        return reportRepository.findLastReportByUserId(user.getId())
+                .map(this::toResponse);
     }
 
     public List<ReportResponse> listAllUserReports(JwtAuthenticationToken token) {
@@ -51,32 +53,13 @@ public class ReportService {
     }
 
     public void generateReport(JwtAuthenticationToken token) {
-        User user = getUser(token);
-
-        LocalDateTime sevenDaysAgo = LocalDateTime.now().minusDays(7);
-        boolean alreadyGenerated =
-                reportRepository.existsByUserIdAndCreatedAtAfter(user.getId(), sevenDaysAgo);
-        if (alreadyGenerated)
-            return;
-
-        List<Task> tasks = taskRepository.findByUserIdAndCreatedAtAfter(user.getId(), sevenDaysAgo);
-
-        if (tasks.isEmpty())
-            return;
-
-        AiResponse aiResponse = aiService.processPrompt(buildPrompt(tasks));
-
-        Report report = new Report();
-        report.setUser(userRepository.getReferenceById(user.getId()));
-        report.setContent(aiResponse.report());
-        reportRepository.save(report);
+        generateReport(getUser(token).getId());
     }
 
     public void generateReport(Long userId) {
 
         LocalDateTime sevenDaysAgo = LocalDateTime.now().minusDays(7);
-        boolean alreadyGenerated =
-                reportRepository.existsByUserIdAndCreatedAtAfter(userId, sevenDaysAgo);
+        boolean alreadyGenerated = reportRepository.existsByUserIdAndCreatedAtAfter(userId, sevenDaysAgo);
         if (alreadyGenerated)
             return;
 
