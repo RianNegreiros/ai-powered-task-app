@@ -1,8 +1,10 @@
 package br.com.riannegreiros.AiTaskApp.tags.Service;
 
 import java.util.List;
+
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
+
 import br.com.riannegreiros.AiTaskApp.auth.model.User;
 import br.com.riannegreiros.AiTaskApp.auth.repository.UserRepository;
 import br.com.riannegreiros.AiTaskApp.infra.exception.TagNotFoundException;
@@ -34,8 +36,10 @@ public class TagService {
     }
 
     public void deleteTag(String id, JwtAuthenticationToken token) {
-        tagRepository.delete(tagRepository.findById(Long.parseLong(id))
-                .orElseThrow(() -> new TagNotFoundException("Tag not found with ID: " + id)));
+        User user = getUser(token);
+        Tag tag = tagRepository.findByIdAndUserId(Long.parseLong(id), user.getId())
+                .orElseThrow(() -> new TagNotFoundException("tag not found with ID: " + id));
+        tagRepository.delete(tag);
     }
 
     private User getUser(JwtAuthenticationToken token) {

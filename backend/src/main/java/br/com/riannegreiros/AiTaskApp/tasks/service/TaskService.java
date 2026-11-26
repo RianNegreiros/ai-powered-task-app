@@ -45,7 +45,7 @@ public class TaskService {
         task.setUser(user);
 
         if (request.tagIds() != null && !request.tagIds().isEmpty()) {
-            task.setTags(getTags(request.tagIds()));
+            task.setTags(getTags(request.tagIds(), user.getId()));
         }
 
         taskRepository.save(task);
@@ -76,7 +76,7 @@ public class TaskService {
         task.setPriority(request.priority());
 
         if (request.tagIds() != null) {
-            task.setTags(request.tagIds().isEmpty() ? new HashSet<>() : getTags(request.tagIds()));
+            task.setTags(request.tagIds().isEmpty() ? new HashSet<>() : getTags(request.tagIds(), user.getId()));
         }
 
         taskRepository.save(task);
@@ -106,10 +106,10 @@ public class TaskService {
                 () -> new UserNotFoundException("User not found with ID: " + token.getName()));
     }
 
-    private Set<Tag> getTags(List<String> tagIds) {
+    private Set<Tag> getTags(List<String> tagIds, Long userId) {
         Set<Tag> tags = new HashSet<>();
         for (String tagId : tagIds) {
-            Tag tag = tagRepository.findById(Long.parseLong(tagId)).orElseThrow(
+            Tag tag = tagRepository.findByIdAndUserId(Long.parseLong(tagId), userId).orElseThrow(
                     () -> new TagNotFoundException("Tag does not belong to user or do not exist"));
             tags.add(tag);
         }
